@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.16.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess.Abstraction\BOS.Integration.Azure.Microservices.DataAccess.Abstraction.csproj" />
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Domain\BOS.Integration.Azure.Microservices.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
