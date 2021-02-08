@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess.Abstraction\BOS.Integration.Azure.Microservices.DataAccess.Abstraction.csproj" />
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess\BOS.Integration.Azure.Microservices.DataAccess.csproj" />
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Infrastructure\BOS.Integration.Azure.Microservices.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="local.settings.json">

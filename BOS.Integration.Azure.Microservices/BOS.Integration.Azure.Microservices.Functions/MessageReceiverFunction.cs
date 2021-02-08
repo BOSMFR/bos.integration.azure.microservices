@@ -10,9 +10,9 @@ namespace BOS.Integration.Azure.Microservices.Functions
 {
     public class MessageReceiverFunction
     {
-        private readonly ICustomerRepository repository;
+        private readonly IProductRepository repository;
 
-        public MessageReceiverFunction(ICustomerRepository repository)
+        public MessageReceiverFunction(IProductRepository repository)
         {
             this.repository = repository;
         }
@@ -22,7 +22,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
         {
             try
             {
-                var obj = JsonConvert.DeserializeObject<Customer>(myQueueItem);
+                var obj = JsonConvert.DeserializeObject<Product>(myQueueItem);
 
                 if (obj != null)
                 {
@@ -30,7 +30,6 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                     await repository.AddAsync(obj);
                 }
-
             }
             catch (Exception ex)
             {

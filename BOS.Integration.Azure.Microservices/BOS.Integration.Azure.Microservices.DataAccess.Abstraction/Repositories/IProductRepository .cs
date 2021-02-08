@@ -2,7 +2,7 @@
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories
 {
-    public interface ICustomerRepository : IRepository<Customer>
+    public interface IProductRepository : IRepository<Product>
     {
     }
 }

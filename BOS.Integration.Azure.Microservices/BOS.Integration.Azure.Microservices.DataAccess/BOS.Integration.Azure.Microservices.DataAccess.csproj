@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess.Abstraction\BOS.Integration.Azure.Microservices.DataAccess.Abstraction.csproj" />
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Domain\BOS.Integration.Azure.Microservices.Domain.csproj" />
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Infrastructure\BOS.Integration.Azure.Microservices.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
