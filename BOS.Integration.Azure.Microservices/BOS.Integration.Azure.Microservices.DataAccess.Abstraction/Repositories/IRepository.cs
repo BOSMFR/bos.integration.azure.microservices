@@ -1,18 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using BOS.Integration.Azure.Microservices.Domain.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories
 {
-    public interface IRepository<T>
+    public interface IRepository<TEntity>
+        where TEntity : BaseEntity
     {
-        Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<TEntity>> GetAllAsync();
         
-        Task<T> GetByIdAsync(int id);
+        Task<TEntity> GetByIdAsync(string id);
 
-        Task AddAsync(T item);
+        Task AddAsync(TEntity item);
 
-        Task UpdateAsync(int id, T item);
+        Task UpdateAsync(string id, TEntity item);
 
-        Task DeleteAsync(int id);
+        Task DeleteAsync(string id);
     }
 }
