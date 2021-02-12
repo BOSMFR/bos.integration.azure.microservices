@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
+﻿using AutoMapper;
+using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.DataAccess.Repositories;
 using BOS.Integration.Azure.Microservices.Functions.Extensions;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
@@ -38,6 +39,20 @@ namespace BOS.Integration.Azure.Microservices.Functions
                                           cosmosDbConfig.Containers);
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+            this.ConfigureAutoMapper(builder.Services);
+        }
+
+        private void ConfigureAutoMapper(IServiceCollection services)
+        {
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+
+            IMapper mapper = mappingConfig.CreateMapper();
+
+            services.AddSingleton(mapper);
         }
     }
 }

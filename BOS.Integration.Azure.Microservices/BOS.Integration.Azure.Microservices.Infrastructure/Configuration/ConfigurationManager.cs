@@ -13,8 +13,6 @@ namespace BOS.Integration.Azure.Microservices.Infrastructure.Configuration
 
         public string ServiceBusConnectionString => this.configuration.GetConnectionString("servicebus");
 
-        public string ServiceBusQueueName => this.configuration["ServiceBusQueueName"];
-
         public CosmosDbSettings CosmosDbSettings => this.GetSectionByName<CosmosDbSettings>("CosmosDbConfig");
 
         private T GetSectionByName<T>(string sectionName)

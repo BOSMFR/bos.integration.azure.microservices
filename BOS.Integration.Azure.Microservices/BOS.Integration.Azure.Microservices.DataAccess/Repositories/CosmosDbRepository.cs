@@ -2,19 +2,21 @@
 using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using Microsoft.Azure.Cosmos;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 {
-    public abstract class CosmosDbRepository<T> : IRepository<T>, IContainerContext where T : BaseEntity
+    public abstract class CosmosDbRepository<T> : IRepository<T>, IContainerContext<T> where T : BaseEntity
     {
         public abstract string ContainerName { get; }
+
+        public abstract string GenerateId(T entity);
+
         public abstract PartitionKey ResolvePartitionKey(string entityId);
 
-        private readonly Container _container;
+        protected readonly Container _container;
 
         public CosmosDbRepository(ICosmosDbContainerFactory cosmosDbContainerFactory)
         {
@@ -52,7 +54,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public async Task AddAsync(T item)
         {
-            item.Id = Guid.NewGuid().ToString();
+            item.Id = GenerateId(item);
             await _container.CreateItemAsync<T>(item, ResolvePartitionKey(item.Id));
         }
 
