@@ -1,7 +1,10 @@
-﻿namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
+﻿using Newtonsoft.Json;
+
+namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
 {
     public class Product : BaseEntity
     {
+        [JsonProperty(PropertyName = "category")]
         public string Category { get; set; }
 
         public string Sku { get; set; }

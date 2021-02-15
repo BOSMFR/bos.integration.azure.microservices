@@ -4,6 +4,8 @@
     {
         string ServiceBusConnectionString { get; }
 
+        ServiceBusSettings ServiceBusSettings { get; }
+
         CosmosDbSettings CosmosDbSettings { get; }
     }
 }

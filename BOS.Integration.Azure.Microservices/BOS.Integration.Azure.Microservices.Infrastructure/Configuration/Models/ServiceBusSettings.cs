@@ -5,7 +5,5 @@
         public string QueueName { get; set; }
 
         public string TopicName { get; set; }
-
-        public string SkuSubscription { get; set; }
     }
 }
