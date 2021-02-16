@@ -9,6 +9,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
         public MappingProfile()
         {
             CreateMap<ProductDTO, Product>();
+
+            CreateMap<ProductDTO, PrimeCargoProductRequestDTO>();
         }
     }
 }

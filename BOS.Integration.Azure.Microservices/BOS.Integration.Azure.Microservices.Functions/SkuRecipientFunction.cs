@@ -1,49 +1,51 @@
 using AutoMapper;
-using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
-using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
-using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
+using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
 {
     public class SkuRecipientFunction
     {
-        private readonly IProductRepository repository;
+        private readonly IProductService productService;
         private readonly IMapper mapper;
 
-        public SkuRecipientFunction(IProductRepository repository, IMapper mapper)
+        public SkuRecipientFunction(IProductService productService, IMapper mapper)
         {
-            this.repository = repository;
+            this.productService = productService;
             this.mapper = mapper;
         }
 
         [FunctionName("SkuRecipientFunction")]
-        public async Task Run([ServiceBusTrigger("azure-topic-mesage-receiver-from-nav-dev", "azure-sku-recipient-subscription", Connection = "serviceBus")] string mySbMsg, ILogger log)
+        [return: ServiceBus("azure-topic-prime-cargo-wms-product-request", Connection = "serviceBus")]
+        public async Task<Message> Run([ServiceBusTrigger("azure-topic-mesage-receiver-from-nav", "azure-sku-recipient-subscription", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
             try
             {
+                // Get product objetc from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(mySbMsg);
 
-                var newProduct = this.mapper.Map<Product>(productDTO);
+                await this.productService.CreateOrUpdateProductAsync(productDTO);
 
-                newProduct.Category = NavObjectCategory.Sku;
+                // Map the product to the prime cargo request object 
+                var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO); // ToDo - update mapping
 
-                var product = await repository.GetByEanNoAsync(newProduct);
+                string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
 
-                if (product == null)
-                {
-                    await repository.AddAsync(newProduct);
-                }
-                else
-                {
-                    newProduct.Id = product.Id;
-                    await repository.UpdateAsync(newProduct.Id, newProduct);
-                }
+                // Create a topic message
+                byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductJson);
+
+                var topicMessage = new Message(messageBody);
+
+                topicMessage.UserProperties.Add("type", "create"); // ToDo - check if prduct was created or updated
+
+                return topicMessage;
             }
             catch (Exception ex)
             {

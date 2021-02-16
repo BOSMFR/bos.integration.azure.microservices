@@ -24,7 +24,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                                                      string databaseName,
                                                      List<ContainerInfo> containers)
         {
-            CosmosClient client = new Microsoft.Azure.Cosmos.CosmosClient(endpointUrl, primaryKey);
+            CosmosClient client = new CosmosClient(endpointUrl, primaryKey);
             CosmosDbContainerFactory cosmosDbClientFactory = new CosmosDbContainerFactory(client, databaseName, containers);
 
             services.AddSingleton<ICosmosDbContainerFactory>(cosmosDbClientFactory);
