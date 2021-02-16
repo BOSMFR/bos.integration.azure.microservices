@@ -11,8 +11,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
     public class MessageReceiverFunction
     {
         [FunctionName("MessageReceiverFunction")]
-        [return: ServiceBus("azure-topic-mesage-receiver-from-nav-dev", Connection = "serviceBus")]
-        public Message Run([ServiceBusTrigger("azure-outbound-engine-dev-add-file", Connection = "serviceBus")] string myQueueItem, IDictionary<string, object> userProperties, ILogger log)
+        [return: ServiceBus("azure-topic-mesage-receiver-from-nav", Connection = "serviceBus")]
+        public Message Run([ServiceBusTrigger("azure-queue-outbound-engine", Connection = "serviceBus")] string myQueueItem, IDictionary<string, object> userProperties, ILogger log)
         {
             try
             {   
@@ -42,7 +42,6 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 if (userProperties.ContainsKey("category"))
                 {
                     category = userProperties["category"].ToString();
-
                 }
                 else if (userProperties.ContainsKey("fileName"))
                 {
