@@ -39,7 +39,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     return;
                 }
 
-                // Use prime cargo API to create a new object
+                // Use prime cargo API to update the object
                 string url = configurationManager.PrimeCargoSettings.Url + "Product/UpdateProduct";
 
                  var response = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseDTO>(url, primeCargoProduct, configurationManager.PrimeCargoSettings.Key);
