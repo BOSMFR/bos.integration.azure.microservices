@@ -22,15 +22,15 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         {
         }
 
-        public async Task<Product> GetByEanNoAsync(Product entity)
+        public async Task<Product> GetByEanNoAsync(string eanNo, string partitionKey)
         {
             var requestOptions = new QueryRequestOptions
             {
-                PartitionKey = new PartitionKey(entity.Category)
+                PartitionKey = new PartitionKey(partitionKey)
             };
 
             var iterator = _container.GetItemLinqQueryable<Product>(requestOptions: requestOptions)
-                                        .Where(p => p.EanNo == entity.EanNo)
+                                        .Where(p => p.EanNo == eanNo)
                                         .ToFeedIterator();
 
             return (await iterator.ReadNextAsync()).FirstOrDefault();

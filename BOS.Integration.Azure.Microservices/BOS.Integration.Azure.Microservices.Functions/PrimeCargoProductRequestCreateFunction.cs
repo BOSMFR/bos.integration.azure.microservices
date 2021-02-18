@@ -1,10 +1,12 @@
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
@@ -24,7 +26,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
 
         [FunctionName("PrimeCargoProductRequestCreateFunction")]
-        public async Task Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-product-request", "azure-sub-prime-cargo-product-create-request", Connection = "serviceBus")] string mySbMsg, ILogger log)
+        [return: ServiceBus("azure-topic-prime-cargo-wms-product-response", Connection = "serviceBus")]
+        public async Task<Message> Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-product-request", "azure-sub-prime-cargo-product-create-request", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
             try
             {
@@ -36,13 +39,24 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 if (!validationService.Validate(primeCargoProduct))
                 {
                     log.LogError("Prime Cargo object validation error occured");
-                    return;
+                    return null;
                 }
 
-                // Use prime cargo API to create a new object
+                // Use prime cargo API to update the object
                 string url = configurationManager.PrimeCargoSettings.Url + "Product/CreateProduct";
 
-                 var response = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseDTO>(url, primeCargoProduct, configurationManager.PrimeCargoSettings.Key);
+                // ToDo - Call prime cargo API instead of test response
+                //var response = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseDTO>(url, primeCargoProduct, configurationManager.PrimeCargoSettings.Key);
+                var response = new PrimeCargoProductResponseDTO { EnaNo = primeCargoProduct.Barcode, ErpjobId = primeCargoProduct.ErpjobId, ProductId = 1, Success = true };
+
+                // Create a topic message
+                string primeCargoProductResponseJson = JsonConvert.SerializeObject(response);
+
+                byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductResponseJson);
+
+                var topicMessage = new Message(messageBody);
+
+                return topicMessage;
             }
             catch (Exception ex)
             {

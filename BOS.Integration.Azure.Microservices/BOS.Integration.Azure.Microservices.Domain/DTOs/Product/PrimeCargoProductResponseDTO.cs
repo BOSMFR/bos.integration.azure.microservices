@@ -6,7 +6,7 @@
 
         public string EnaNo { get; set; }
 
-        public string ProductId { get; set; }
+        public int? ProductId { get; set; }
 
         public string ErpjobId { get; set; }
 
@@ -15,5 +15,7 @@
         public string ResponceCode { get; set; }
 
         public string ResponceDescription { get; set; }
+
+        public bool Success { get; set; }
     }
 }

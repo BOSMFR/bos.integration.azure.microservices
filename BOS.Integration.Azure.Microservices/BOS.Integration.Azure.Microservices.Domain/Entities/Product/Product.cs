@@ -17,7 +17,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
 
         public string Description { get; set; }
 
-        public int PrimeCargoProductId { get; set; }
+        public int? PrimeCargoProductId { get; set; }
 
         public string WmsProductType { get; set; }
 
@@ -31,7 +31,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
 
         public bool ExtraService { get; set; }
 
-        public int AzureOutboundStatusId { get; set; }
+        public int? AzureOutboundStatusId { get; set; }
 
         public string AzureOutboundStatusText { get; set; }
 

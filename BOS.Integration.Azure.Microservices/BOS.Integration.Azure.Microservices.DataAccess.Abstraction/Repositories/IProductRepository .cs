@@ -5,6 +5,6 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
 {
     public interface IProductRepository : IRepository<Product>
     {
-        Task<Product> GetByEanNoAsync(Product entity);
+        Task<Product> GetByEanNoAsync(string eanNo, string partitionKey);
     }
 }

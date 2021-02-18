@@ -5,6 +5,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface IProductService
     {
-        Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO);
+        Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null);
+
+        Task UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse);
     }
 }

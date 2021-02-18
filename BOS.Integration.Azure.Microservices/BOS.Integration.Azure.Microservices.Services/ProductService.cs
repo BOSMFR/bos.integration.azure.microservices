@@ -19,7 +19,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO)
+        public async Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
         {
             bool isNewObjectCreated = false;
 
@@ -27,14 +27,14 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             newProduct.Category = NavObjectCategory.Sku;
 
-            var product = await repository.GetByEanNoAsync(newProduct);
+            var product = await repository.GetByEanNoAsync(newProduct.EanNo, newProduct.Category);
 
             if (product == null)
             {
                 newProduct.PrimeCargoIntegration = new PrimeCargoIntegration
                 {
                     Delivered = false,
-                    State = PrimeCargoIntegrationState.NotDelivered
+                    State = primeCargoIntegrationState ?? PrimeCargoIntegrationState.NotDelivered
                 };
 
                 await repository.AddAsync(newProduct);
@@ -48,6 +48,24 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
 
             return isNewObjectCreated;
+        }
+
+        public async Task UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse)
+        {
+            var product = await repository.GetByEanNoAsync(primeCargoResponse.EnaNo, NavObjectCategory.Sku);
+
+            if (product != null)
+            {
+                product.PrimeCargoProductId = primeCargoResponse.ProductId;
+
+                product.PrimeCargoIntegration = new PrimeCargoIntegration
+                {
+                    Delivered = primeCargoResponse.Success,
+                    State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error
+                };
+
+                await repository.UpdateAsync(product.Id, product);
+            }
         }
     }
 }
