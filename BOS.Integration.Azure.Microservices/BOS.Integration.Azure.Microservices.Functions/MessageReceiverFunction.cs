@@ -15,7 +15,9 @@ namespace BOS.Integration.Azure.Microservices.Functions
         public Message Run([ServiceBusTrigger("azure-queue-outbound-engine", Connection = "serviceBus")] string myQueueItem, IDictionary<string, object> userProperties, ILogger log)
         {
             try
-            {   
+            {
+                log.LogInformation("MessageReceiver function recieved the message from the queue");
+
                 string category = this.GetCategory(userProperties);
 
                 byte[] messageBody = Encoding.UTF8.GetBytes(myQueueItem);

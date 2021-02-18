@@ -5,5 +5,7 @@
         string ServiceBusConnectionString { get; }
 
         CosmosDbSettings CosmosDbSettings { get; }
+
+        PrimeCargoSettings PrimeCargoSettings { get; }
     }
 }

@@ -32,7 +32,9 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddApplicationInsightsTelemetry(configuration["ApplicationInsights:InstrumentationKey"]);
 
             builder.Services.AddTransient<IConfigurationManager, ConfigurationManager>();
+            builder.Services.AddTransient<IHttpService, HttpService>();
             builder.Services.AddTransient<IProductService, ProductService>();
+            builder.Services.AddTransient<IValidationService, ValidationService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 

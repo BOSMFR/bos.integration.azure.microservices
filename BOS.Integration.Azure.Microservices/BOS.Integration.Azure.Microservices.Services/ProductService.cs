@@ -19,8 +19,10 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task CreateOrUpdateProductAsync(ProductDTO productDTO)
+        public async Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO)
         {
+            bool isNewObjectCreated = false;
+
             var newProduct = this.mapper.Map<Product>(productDTO);
 
             newProduct.Category = NavObjectCategory.Sku;
@@ -36,12 +38,16 @@ namespace BOS.Integration.Azure.Microservices.Services
                 };
 
                 await repository.AddAsync(newProduct);
+
+                isNewObjectCreated = true;
             }
             else
             {
                 newProduct.Id = product.Id;
                 await repository.UpdateAsync(newProduct.Id, newProduct);
             }
+
+            return isNewObjectCreated;
         }
     }
 }

@@ -13,6 +13,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
 {
     public class SkuRecipientFunction
     {
+        private const int DescriptionMaxLength = 20;
+
         private readonly IProductService productService;
         private readonly IMapper mapper;
 
@@ -28,22 +30,26 @@ namespace BOS.Integration.Azure.Microservices.Functions
         {
             try
             {
+                log.LogInformation("SkuRecipient function recieved the message from the topic");
+
                 // Get product objetc from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(mySbMsg);
 
-                await this.productService.CreateOrUpdateProductAsync(productDTO);
+                bool isNewObjectCreated = await this.productService.CreateOrUpdateProductAsync(productDTO);
 
-                // Map the product to the prime cargo request object 
-                var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO); // ToDo - update mapping
+                // Map the product to the prime cargo request object and check a description
+                var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO);
 
-                string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
+                TrimPrimeCargoProductDescription(primeCargoProduct);
 
                 // Create a topic message
+                string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
+
                 byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductJson);
 
                 var topicMessage = new Message(messageBody);
 
-                topicMessage.UserProperties.Add("type", "create"); // ToDo - check if prduct was created or updated
+                topicMessage.UserProperties.Add("type", isNewObjectCreated ? "create" : "update");
 
                 return topicMessage;
             }
@@ -52,6 +58,13 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 log.LogError(ex, ex.Message);
                 throw ex;
             }
+        }
+
+        private void TrimPrimeCargoProductDescription(PrimeCargoProductRequestDTO primeCargoProduct)
+        {
+            primeCargoProduct.Description = primeCargoProduct.Description?.Length > DescriptionMaxLength
+                                                ? primeCargoProduct.Description.Substring(0, DescriptionMaxLength).Trim()
+                                                : primeCargoProduct.Description;
         }
     }
 }
