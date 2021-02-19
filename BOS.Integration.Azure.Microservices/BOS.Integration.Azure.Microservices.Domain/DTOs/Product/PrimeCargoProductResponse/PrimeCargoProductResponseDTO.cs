@@ -10,11 +10,11 @@
 
         public string ErpjobId { get; set; }
 
-        public string ResponceDateTime { get; set; }
+        public string ResponseDateTime { get; set; }
 
-        public string ResponceCode { get; set; }
+        public string ResponseCode { get; set; }
 
-        public string ResponceDescription { get; set; }
+        public string ResponseDescription { get; set; }
 
         public bool Success { get; set; }
     }

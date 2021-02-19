@@ -1,5 +1,5 @@
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
-using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
+using BOS.Integration.Azure.Microservices.Domain.Enums;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -13,14 +13,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
 {
     public class PrimeCargoProductRequestCreateFunction
     {
-        private readonly IConfigurationManager configurationManager;
-        private readonly IHttpService httpService;
+        private readonly IPrimeCargoService primeCargoService;
         private readonly IValidationService validationService;
 
-        public PrimeCargoProductRequestCreateFunction(IConfigurationManager configurationManager, IHttpService httpService, IValidationService validationService)
+        public PrimeCargoProductRequestCreateFunction(IPrimeCargoService primeCargoService, IValidationService validationService)
         {
-            this.configurationManager = configurationManager;
-            this.httpService = httpService;
+            this.primeCargoService = primeCargoService;
             this.validationService = validationService;
         }
 
@@ -42,15 +40,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     return null;
                 }
 
-                // Use prime cargo API to update the object
-                string url = configurationManager.PrimeCargoSettings.Url + "Product/CreateProduct";
-
-                // ToDo - Call prime cargo API instead of test response
-                //var response = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseDTO>(url, primeCargoProduct, configurationManager.PrimeCargoSettings.Key);
-                var response = new PrimeCargoProductResponseDTO { EnaNo = primeCargoProduct.Barcode, ErpjobId = primeCargoProduct.ErpjobId, ProductId = 1, Success = true };
+                // Use prime cargo API to create the object
+                //var primeCargoResponse = await this.primeCargoService.CreateOrUpdatePrimeCargoProductAsync(primeCargoProduct, ActionType.Create);
+                var primeCargoResponse = new PrimeCargoProductResponseDTO { EnaNo = primeCargoProduct.Barcode, ErpjobId = primeCargoProduct.ErpjobId, ProductId = 1, Success = true };
 
                 // Create a topic message
-                string primeCargoProductResponseJson = JsonConvert.SerializeObject(response);
+                string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse);
 
                 byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductResponseJson);
 

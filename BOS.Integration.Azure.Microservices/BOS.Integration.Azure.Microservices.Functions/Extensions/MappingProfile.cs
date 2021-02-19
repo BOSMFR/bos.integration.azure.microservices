@@ -21,6 +21,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.Variant3, x => x.MapFrom(x => x.Style.Code))
                 .ForMember(x => x.Variant4, x => x.MapFrom(x => (x.Assortment.Code + " " + x.Assortment.Description).Trim()))
                 .ForMember(x => x.Variant5, x => x.MapFrom(x => x.Sku));
+
+            CreateMap<PrimeCargoProductResponseContent, PrimeCargoProductResponseDTO>()
+                .ForMember(x => x.EnaNo, x => x.MapFrom(x => x.Data.Barcode))
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.Data.ProductId))
+                .ForMember(x => x.Sku, x => x.MapFrom(x => x.Data.Variant5))
+                .ForMember(x => x.ResponseCode, x => x.MapFrom(x => x.ProcessingDetails.Code));
         }
 
         private PrimeCargoProductType? MapPrimeCargoProductType(string wmsProductType) => 

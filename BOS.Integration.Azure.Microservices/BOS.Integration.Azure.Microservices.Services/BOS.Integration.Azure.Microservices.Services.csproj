@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess.Abstraction\BOS.Integration.Azure.Microservices.DataAccess.Abstraction.csproj" />
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Infrastructure\BOS.Integration.Azure.Microservices.Infrastructure.csproj" />
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Services.Abstraction\BOS.Integration.Azure.Microservices.Services.Abstraction.csproj" />
   </ItemGroup>
 

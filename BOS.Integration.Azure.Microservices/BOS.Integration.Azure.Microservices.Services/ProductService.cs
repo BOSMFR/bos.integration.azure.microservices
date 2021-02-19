@@ -58,11 +58,8 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 product.PrimeCargoProductId = primeCargoResponse.ProductId;
 
-                product.PrimeCargoIntegration = new PrimeCargoIntegration
-                {
-                    Delivered = primeCargoResponse.Success,
-                    State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error
-                };
+                product.PrimeCargoIntegration.Delivered = product.PrimeCargoIntegration.Delivered || primeCargoResponse.Success;
+                product.PrimeCargoIntegration.State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error;
 
                 await repository.UpdateAsync(product.Id, product);
             }

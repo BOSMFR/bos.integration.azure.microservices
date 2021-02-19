@@ -39,7 +39,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<V> PostAsync<T, V>(string url, T dataParams, string key = null)
+        public async Task<V> PostAsync<T, V>(string url, T dataParams, string key = null, string token = null)
         {
             using (var client = new HttpClient())
             {
@@ -49,6 +49,11 @@ namespace BOS.Integration.Azure.Microservices.Services
                 }
 
                 client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                }
 
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
