@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -29,14 +30,17 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             var product = await repository.GetByEanNoAsync(newProduct.EanNo, newProduct.Category);
 
-            if (product == null)
+            if (newProduct.PrimeCargoIntegration == null)
             {
                 newProduct.PrimeCargoIntegration = new PrimeCargoIntegration
                 {
                     Delivered = false,
                     State = primeCargoIntegrationState ?? PrimeCargoIntegrationState.NotDelivered
                 };
+            }
 
+            if (product == null)
+            {
                 await repository.AddAsync(newProduct);
 
                 isNewObjectCreated = true;
@@ -50,19 +54,28 @@ namespace BOS.Integration.Azure.Microservices.Services
             return isNewObjectCreated;
         }
 
-        public async Task UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse)
+        public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string primeCargoIntegrationState)
+        {
+            return await repository.GetAllByPrimeCargoIntegrationStateAsync(primeCargoIntegrationState, NavObjectCategory.Sku);
+        }
+
+        public async Task<bool> UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse)
         {
             var product = await repository.GetByEanNoAsync(primeCargoResponse.EnaNo, NavObjectCategory.Sku);
 
-            if (product != null)
+            if (product == null)
             {
-                product.PrimeCargoProductId = primeCargoResponse.ProductId;
-
-                product.PrimeCargoIntegration.Delivered = product.PrimeCargoIntegration.Delivered || primeCargoResponse.Success;
-                product.PrimeCargoIntegration.State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error;
-
-                await repository.UpdateAsync(product.Id, product);
+                return false;
             }
+
+            product.PrimeCargoProductId = primeCargoResponse.ProductId;
+
+            product.PrimeCargoIntegration.Delivered = product.PrimeCargoIntegration.Delivered || primeCargoResponse.Success;
+            product.PrimeCargoIntegration.State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error;
+
+            await repository.UpdateAsync(product.Id, product);
+
+            return true;
         }
     }
 }

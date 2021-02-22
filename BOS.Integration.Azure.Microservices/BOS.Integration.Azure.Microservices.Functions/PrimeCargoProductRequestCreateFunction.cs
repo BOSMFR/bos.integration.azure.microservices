@@ -41,11 +41,18 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 }
 
                 // Use prime cargo API to create the object
-                //var primeCargoResponse = await this.primeCargoService.CreateOrUpdatePrimeCargoProductAsync(primeCargoProduct, ActionType.Create);
-                var primeCargoResponse = new PrimeCargoProductResponseDTO { EnaNo = primeCargoProduct.Barcode, ErpjobId = primeCargoProduct.ErpjobId, ProductId = 1, Success = true };
+                var primeCargoResponse = await this.primeCargoService.CreateOrUpdatePrimeCargoProductAsync(primeCargoProduct, ActionType.Create);
+
+                if (!primeCargoResponse.Succeeded)
+                {
+                    string errorMessage = string.IsNullOrEmpty(primeCargoResponse.Error) ? "Could not create a new object via prime cargo API" : primeCargoResponse.Error;
+
+                    log.LogError(errorMessage);
+                    return null;
+                }
 
                 // Create a topic message
-                string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse);
+                string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse.Entity);
 
                 byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductResponseJson);
 

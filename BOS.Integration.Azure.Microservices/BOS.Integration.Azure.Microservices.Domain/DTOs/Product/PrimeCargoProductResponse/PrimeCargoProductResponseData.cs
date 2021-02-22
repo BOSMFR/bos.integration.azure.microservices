@@ -22,6 +22,8 @@
 
         public string Variant5 { get; set; }
 
+        public string CreatedTime { get; set; }
+
         public bool Fifo { get; set; }
 
         public bool GiveAway { get; set; }

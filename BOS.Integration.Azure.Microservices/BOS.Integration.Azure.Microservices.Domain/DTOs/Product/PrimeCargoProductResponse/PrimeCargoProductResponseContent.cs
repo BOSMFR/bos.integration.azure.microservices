@@ -1,10 +1,12 @@
-﻿namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Product
+﻿using System.Collections.Generic;
+
+namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Product
 {
     public class PrimeCargoProductResponseContent
     {
         public PrimeCargoProductResponseData Data { get; set; }
 
-        public PrimeCargoProductResponseDetails ProcessingDetails { get; set; }
+        public List<PrimeCargoProductResponseDetail> ProcessingDetails { get; set; }
 
         public string Message { get; set; }
 

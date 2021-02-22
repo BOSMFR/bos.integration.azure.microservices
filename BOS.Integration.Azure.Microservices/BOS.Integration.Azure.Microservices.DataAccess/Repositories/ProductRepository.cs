@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public override PartitionKey ResolvePartitionKey(string entityId) => new PartitionKey(entityId.Split(':').First());
 
-        public ProductRepository(ICosmosDbContainerFactory factory) 
+        public ProductRepository(ICosmosDbContainerFactory factory)
             : base(factory)
         {
         }
@@ -34,6 +35,20 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                                         .ToFeedIterator();
 
             return (await iterator.ReadNextAsync()).FirstOrDefault();
+        }
+
+        public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string state, string partitionKey)
+        {
+            var requestOptions = new QueryRequestOptions
+            {
+                PartitionKey = new PartitionKey(partitionKey)
+            };
+
+            var iterator = _container.GetItemLinqQueryable<Product>(requestOptions: requestOptions)
+                                        .Where(p => p.PrimeCargoIntegration.State == state)
+                                        .ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).ToList();
         }
     }
 }

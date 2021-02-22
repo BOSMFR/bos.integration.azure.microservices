@@ -24,13 +24,23 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("UpdateSkuIntoCosmosDb function recieved the message from the topic");
 
+                bool isSucceeded = false;
+
                 var primeCargoResponse = JsonConvert.DeserializeObject<PrimeCargoProductResponseDTO>(mySbMsg);
 
                 if (primeCargoResponse != null)
                 {
-                    await productService.UpdateProductFromPrimeCargoInfoAsync(primeCargoResponse);
+                    isSucceeded = await productService.UpdateProductFromPrimeCargoInfoAsync(primeCargoResponse);
 
-                    log.LogInformation("Sku is successfully updated in Cosmos DB");
+                    if (isSucceeded)
+                    {
+                        log.LogInformation("Sku is successfully updated in Cosmos DB");
+                    }
+                }
+
+                if (!isSucceeded)
+                {
+                    log.LogError("Could not update the Sku");
                 }
             }
             catch (Exception ex)

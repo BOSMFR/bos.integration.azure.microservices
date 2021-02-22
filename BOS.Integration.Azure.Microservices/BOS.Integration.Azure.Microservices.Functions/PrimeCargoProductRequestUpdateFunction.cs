@@ -24,7 +24,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
 
         [FunctionName("PrimeCargoProductRequestUpdateFunction")]
-        [return: ServiceBus("azure-topic-prime-cargo-wms-product-request", Connection = "serviceBus")]
+        [return: ServiceBus("azure-topic-prime-cargo-wms-product-response", Connection = "serviceBus")]
         public async Task<Message> Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-product-request", "azure-sub-prime-cargo-product-update-request", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
             try
@@ -43,8 +43,16 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 // Use prime cargo API to update the object
                 var primeCargoResponse = await this.primeCargoService.CreateOrUpdatePrimeCargoProductAsync(primeCargoProduct, ActionType.Update);
 
+                if (!primeCargoResponse.Succeeded)
+                {
+                    string errorMessage = string.IsNullOrEmpty(primeCargoResponse.Error) ? "Could not update the object via prime cargo API" : primeCargoResponse.Error;
+
+                    log.LogError(errorMessage);
+                    return null;
+                }
+
                 // Create a topic message
-                string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse);
+                string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse.Entity);
 
                 byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductResponseJson);
 

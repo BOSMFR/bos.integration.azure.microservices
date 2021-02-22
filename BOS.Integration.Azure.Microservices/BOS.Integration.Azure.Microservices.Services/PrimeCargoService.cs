@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
@@ -6,6 +7,7 @@ using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -23,28 +25,48 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<PrimeCargoProductResponseDTO> CreateOrUpdatePrimeCargoProductAsync(PrimeCargoProductRequestDTO primeCargoProduct, ActionType actionType)
+        public async Task<ActionExecutionResult> CreateOrUpdatePrimeCargoProductAsync(PrimeCargoProductRequestDTO primeCargoProduct, ActionType actionType)
         {
-            string productUrl = configuration.PrimeCargoSettings.Url + "Product/" + (actionType == ActionType.Create ? "CreateProduct" : "UpdateProduct");
-            string authUrl = configuration.PrimeCargoSettings.Url + "Auth";
+            var actionResult = new ActionExecutionResult();
 
-            var authBody = new PrimeCargoAuthRequestDTO
+            try
             {
-                OwnerCode = configuration.PrimeCargoSettings.OwnerCode,
-                UserName = configuration.PrimeCargoSettings.UserName,
-                Password = configuration.PrimeCargoSettings.Password
-            };
+                string productUrl = configuration.PrimeCargoSettings.Url + "Product/" + (actionType == ActionType.Create ? "CreateProduct" : "UpdateProduct");
+                string authUrl = configuration.PrimeCargoSettings.Url + "Auth";
 
-            var authResponse = await this.httpService.PostAsync<PrimeCargoAuthRequestDTO, PrimeCargoAuthResponseDTO>(authUrl, authBody, configuration.PrimeCargoSettings.Key);
+                var authBody = new PrimeCargoAuthRequestDTO
+                {
+                    OwnerCode = configuration.PrimeCargoSettings.OwnerCode,
+                    UserName = configuration.PrimeCargoSettings.UserName,
+                    Password = configuration.PrimeCargoSettings.Password
+                };
 
-            var content = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseContent>(productUrl, primeCargoProduct, configuration.PrimeCargoSettings.Key, authResponse.Data?.Token);
+                var authResponse = await this.httpService.PostAsync<PrimeCargoAuthRequestDTO, PrimeCargoAuthResponseDTO>(authUrl, authBody, configuration.PrimeCargoSettings.Key);
 
-            var response = this.mapper.Map<PrimeCargoProductResponseDTO>(content);
+                var content = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseContent>(productUrl, primeCargoProduct, configuration.PrimeCargoSettings.Key, authResponse.Data?.Token);
 
-            response.ErpjobId = primeCargoProduct.ErpjobId;
-            response.ResponseDateTime = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+                string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message;
 
-            return response;
+                if (!content.Success && !string.IsNullOrEmpty(errorMessage))
+                {
+                    actionResult.Error = errorMessage;
+                    return actionResult;
+                }
+
+                var responseObject = this.mapper.Map<PrimeCargoProductResponseDTO>(content);
+
+                responseObject.ErpjobId = primeCargoProduct.ErpjobId;
+
+                actionResult.Entity = responseObject;
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
         }
     }
 }

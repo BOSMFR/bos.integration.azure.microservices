@@ -1,4 +1,6 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services.Abstraction
@@ -7,6 +9,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null);
 
-        Task UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse);
+        Task<bool> UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse);
+
+        Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string primeCargoIntegrationState);
     }
 }
