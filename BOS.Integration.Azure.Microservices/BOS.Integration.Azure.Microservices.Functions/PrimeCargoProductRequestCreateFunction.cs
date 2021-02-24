@@ -6,7 +6,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
@@ -15,11 +14,16 @@ namespace BOS.Integration.Azure.Microservices.Functions
     {
         private readonly IPrimeCargoService primeCargoService;
         private readonly IValidationService validationService;
+        private readonly IServiceBusService serviceBusService;
 
-        public PrimeCargoProductRequestCreateFunction(IPrimeCargoService primeCargoService, IValidationService validationService)
+        public PrimeCargoProductRequestCreateFunction(
+            IPrimeCargoService primeCargoService, 
+            IValidationService validationService, 
+            IServiceBusService serviceBusService)
         {
             this.primeCargoService = primeCargoService;
             this.validationService = validationService;
+            this.serviceBusService = serviceBusService;
         }
 
 
@@ -48,17 +52,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     string errorMessage = string.IsNullOrEmpty(primeCargoResponse.Error) ? "Could not create a new object via prime cargo API" : primeCargoResponse.Error;
 
                     log.LogError(errorMessage);
-                    return null;
                 }
 
                 // Create a topic message
                 string primeCargoProductResponseJson = JsonConvert.SerializeObject(primeCargoResponse.Entity);
 
-                byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductResponseJson);
-
-                var topicMessage = new Message(messageBody);
-
-                return topicMessage;
+                return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
             }
             catch (Exception ex)
             {

@@ -36,6 +36,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IProductService, ProductService>();
             builder.Services.AddTransient<IValidationService, ValidationService>();
             builder.Services.AddTransient<IPrimeCargoService, PrimeCargoService>();
+            builder.Services.AddTransient<IServiceBusService, ServiceBusService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 

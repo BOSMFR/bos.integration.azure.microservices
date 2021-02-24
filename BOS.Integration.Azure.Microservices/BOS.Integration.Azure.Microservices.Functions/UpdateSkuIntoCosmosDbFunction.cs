@@ -40,7 +40,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 if (!isSucceeded)
                 {
-                    log.LogError("Could not update the Sku");
+                    log.LogError("Could not update the Sku in Cosmos DB");
                 }
             }
             catch (Exception ex)

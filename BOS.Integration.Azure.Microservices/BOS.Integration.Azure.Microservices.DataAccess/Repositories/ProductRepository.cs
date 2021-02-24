@@ -1,9 +1,9 @@
 ﻿using BOS.Integration.Azure.Microservices.DataAccess.Abstraction;
 using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,34 +14,20 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
     {
         public override string ContainerName { get; } = "product";
 
-        public override string GenerateId(Product entity) => $"{entity.Category}:{Guid.NewGuid()}";
+        public override string GenerateId(Product entity) => entity.EanNo;
 
-        public override PartitionKey ResolvePartitionKey(string entityId) => new PartitionKey(entityId.Split(':').First());
+        public override PartitionKey ResolvePartitionKey() => new PartitionKey(NavObjectCategory.Sku);
 
         public ProductRepository(ICosmosDbContainerFactory factory)
             : base(factory)
         {
         }
 
-        public async Task<Product> GetByEanNoAsync(string eanNo, string partitionKey)
+        public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string state)
         {
             var requestOptions = new QueryRequestOptions
             {
-                PartitionKey = new PartitionKey(partitionKey)
-            };
-
-            var iterator = _container.GetItemLinqQueryable<Product>(requestOptions: requestOptions)
-                                        .Where(p => p.EanNo == eanNo)
-                                        .ToFeedIterator();
-
-            return (await iterator.ReadNextAsync()).FirstOrDefault();
-        }
-
-        public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string state, string partitionKey)
-        {
-            var requestOptions = new QueryRequestOptions
-            {
-                PartitionKey = new PartitionKey(partitionKey)
+                PartitionKey = this.ResolvePartitionKey()
             };
 
             var iterator = _container.GetItemLinqQueryable<Product>(requestOptions: requestOptions)

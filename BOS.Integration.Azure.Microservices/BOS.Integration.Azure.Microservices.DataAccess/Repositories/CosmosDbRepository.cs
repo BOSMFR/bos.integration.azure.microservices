@@ -14,7 +14,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public abstract string GenerateId(T entity);
 
-        public abstract PartitionKey ResolvePartitionKey(string entityId);
+        public abstract PartitionKey ResolvePartitionKey();
 
         protected readonly Container _container;
 
@@ -42,7 +42,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         {
             try
             {
-                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey(id));
+                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey());
 
                 return response.Resource;
             }
@@ -55,17 +55,17 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         public async Task AddAsync(T item)
         {
             item.Id = GenerateId(item);
-            await _container.CreateItemAsync<T>(item, ResolvePartitionKey(item.Id));
+            await _container.CreateItemAsync<T>(item, ResolvePartitionKey());
         }
 
         public async Task UpdateAsync(string id, T item)
         {
-            await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey(id));
+            await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey());
         }
 
         public async Task DeleteAsync(string id)
         {
-            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(id));
+            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey());
         }
     }
 }

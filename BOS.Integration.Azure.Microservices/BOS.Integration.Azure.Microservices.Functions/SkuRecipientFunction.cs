@@ -2,26 +2,26 @@ using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Globalization;
-using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
 {
     public class SkuRecipientFunction
     {
-        private const int DescriptionMaxLength = 50;
-
+        private readonly IServiceBusService serviceBusService;
         private readonly IProductService productService;
         private readonly IMapper mapper;
 
-        public SkuRecipientFunction(IProductService productService, IMapper mapper)
+        public SkuRecipientFunction(IServiceBusService serviceBusService, IProductService productService, IMapper mapper)
         {
+            this.serviceBusService = serviceBusService;
             this.productService = productService;
             this.mapper = mapper;
         }
@@ -37,7 +37,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 // Get product objetc from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(mySbMsg);
 
-                string primeCargoIntegrationState = GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);
+                string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);
 
                 bool isNewObjectCreated = await this.productService.CreateOrUpdateProductAsync(productDTO, primeCargoIntegrationState);
 
@@ -50,35 +50,20 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 // Map the product to the prime cargo request object and check a description
                 var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO);
 
-                TrimPrimeCargoProductDescription(primeCargoProduct);
+                primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
                 // Create a topic message
                 string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
 
-                byte[] messageBody = Encoding.UTF8.GetBytes(primeCargoProductJson);
+                var messageProperties = new Dictionary<string, object> { { "type", isNewObjectCreated ? "create" : "update" } };
 
-                var topicMessage = new Message(messageBody);
-
-                topicMessage.UserProperties.Add("type", isNewObjectCreated ? "create" : "update");
-
-                return topicMessage;
+                return this.serviceBusService.CreateMessage(primeCargoProductJson, messageProperties);
             }
             catch (Exception ex)
             {
                 log.LogError(ex, ex.Message);
                 throw ex;
             }
-        }
-
-        private string GetPrimeCargoIntegrationState(string startDatePrimeCargoExport)
-            => (!DateTime.TryParseExact(startDatePrimeCargoExport, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime startDate) || startDate > DateTime.Today)
-                ? PrimeCargoIntegrationState.Waiting : PrimeCargoIntegrationState.NotDelivered;
-
-        private void TrimPrimeCargoProductDescription(PrimeCargoProductRequestDTO primeCargoProduct)
-        {
-            primeCargoProduct.Description = primeCargoProduct.Description?.Length > DescriptionMaxLength
-                                                ? primeCargoProduct.Description.Substring(0, DescriptionMaxLength).Trim()
-                                                : primeCargoProduct.Description;
         }
     }
 }
