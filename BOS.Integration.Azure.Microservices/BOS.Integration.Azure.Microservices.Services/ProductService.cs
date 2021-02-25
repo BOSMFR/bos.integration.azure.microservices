@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -20,38 +21,31 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<bool> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
+        public async Task<Product> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
         {
-            bool isNewObjectCreated = false;
-
             var newProduct = this.mapper.Map<Product>(productDTO);
-
-            newProduct.Category = NavObjectCategory.Sku;
 
             var product = await repository.GetByIdAsync(newProduct.EanNo);
 
-            if (newProduct.PrimeCargoIntegration == null)
-            {
-                newProduct.PrimeCargoIntegration = new PrimeCargoIntegration
-                {
-                    Delivered = false,
-                    State = primeCargoIntegrationState ?? PrimeCargoIntegrationState.NotDelivered
-                };
-            }
+            newProduct.PrimeCargoIntegration = GetPrimeCargoIntegration(product?.PrimeCargoIntegration?.Delivered, primeCargoIntegrationState);
 
             if (product == null)
             {
-                await repository.AddAsync(newProduct);
+                newProduct.Category = NavObjectCategory.Sku;
+                newProduct.ReceivedFromErp = DateTime.Now.ToString("yyyyMMdd hh:mm:ss");
 
-                isNewObjectCreated = true;
+                await repository.AddAsync(newProduct);
             }
             else
             {
                 newProduct.Id = product.Id;
+                newProduct.Category = product.Category;
+                newProduct.ReceivedFromErp = product.ReceivedFromErp;
+
                 await repository.UpdateAsync(newProduct.Id, newProduct);
             }
 
-            return isNewObjectCreated;
+            return newProduct;
         }
 
         public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string primeCargoIntegrationState)
@@ -80,5 +74,12 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             return true;
         }
+
+        private PrimeCargoIntegration GetPrimeCargoIntegration(bool? delivered, string primeCargoIntegrationState = null) =>
+            new PrimeCargoIntegration
+            {
+                Delivered = delivered ?? false,
+                State = primeCargoIntegrationState ?? PrimeCargoIntegrationState.NotDelivered
+            };
     }
 }

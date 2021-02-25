@@ -41,9 +41,9 @@ namespace BOS.Integration.Azure.Microservices.Services
                     Password = configuration.PrimeCargoSettings.Password
                 };
 
-                var authResponse = await this.httpService.PostAsync<PrimeCargoAuthRequestDTO, PrimeCargoAuthResponseDTO>(authUrl, authBody, configuration.PrimeCargoSettings.Key);
+                var authResponse = await this.httpService.GetAsync<PrimeCargoAuthResponseDTO>(authUrl, configuration.PrimeCargoSettings.Key, authBody: authBody);
 
-                var content = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseContent>(productUrl, primeCargoProduct, configuration.PrimeCargoSettings.Key, authResponse.Data?.Token);
+                var content = await this.httpService.PostAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseContent>(productUrl, primeCargoProduct, configuration.PrimeCargoSettings.Key, authResponse?.Data?.Token);
 
                 string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message;
 

@@ -1,5 +1,6 @@
 using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
@@ -17,12 +18,18 @@ namespace BOS.Integration.Azure.Microservices.Functions
     {
         private readonly IServiceBusService serviceBusService;
         private readonly IProductService productService;
+        private readonly ILogService logService;
         private readonly IMapper mapper;
 
-        public SkuTimerFunction(IServiceBusService serviceBusService, IProductService productService, IMapper mapper)
+        public SkuTimerFunction(
+            IServiceBusService serviceBusService,
+            IProductService productService,
+            ILogService logService,
+            IMapper mapper)
         {
             this.serviceBusService = serviceBusService;
             this.productService = productService;
+            this.logService = logService;
             this.mapper = mapper;
         }
 
@@ -44,13 +51,19 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                     if (primeCargoIntegrationState != PrimeCargoIntegrationState.Waiting)
                     {
+                        var erpInfo = this.mapper.Map<LogInfo>(product);
+
                         // Map the product to the prime cargo request object and check a description
                         var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(product);
 
                         primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
+                        await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.PrepareForServiceBus, TimeLineStatus.Information);
+
                         // Create a topic message
-                        string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
+                        var messageBody = new PrimeCargoProductRequestMessage { ErpInfo = erpInfo, PrimeCargoProduct = primeCargoProduct };
+
+                        string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
 
                         var messageProperties = new Dictionary<string, object> { { "type", product.PrimeCargoIntegration.Delivered ? "update" : "create" } };
 

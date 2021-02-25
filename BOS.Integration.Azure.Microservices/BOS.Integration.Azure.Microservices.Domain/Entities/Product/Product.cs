@@ -39,6 +39,8 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
 
         public string ErpDateTime { get; set; }
 
+        public string ReceivedFromErp { get; set; }
+
         public Characteristic Colour { get; set; }
 
         public Characteristic Size { get; set; }

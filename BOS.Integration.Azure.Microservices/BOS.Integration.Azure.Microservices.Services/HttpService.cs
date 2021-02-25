@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.Services.Abstraction;
+﻿using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
+using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -19,10 +20,27 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.logger = logger;
         }
 
-        public async Task<T> GetAsync<T>(string url)
+        public async Task<T> GetAsync<T>(string url, string key = null, string token = null, PrimeCargoAuthRequestDTO authBody = null)
         {
             using (var client = new HttpClient())
             {
+                if (authBody != null)
+                {
+                    client.DefaultRequestHeaders.Add("ownerCode", authBody.OwnerCode);
+                    client.DefaultRequestHeaders.Add("username", authBody.UserName);
+                    client.DefaultRequestHeaders.Add("password", authBody.Password);
+                }
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
+                }
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                }
+
                 using (var httpResponse = await client.GetAsync(url))
                 {
                     if (httpResponse.IsSuccessStatusCode)
@@ -58,7 +76,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var bodyContent = JsonConvert.SerializeObject(dataParams);
-                var result = await client.PostAsync(url, new StringContent(bodyContent, Encoding.UTF8, "application/json"));  
+                var result = await client.PostAsync(url, new StringContent(bodyContent, Encoding.UTF8, "application/json"));
 
                 if (result.StatusCode == HttpStatusCode.OK)
                 {

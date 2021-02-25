@@ -9,6 +9,6 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction
 
         string GenerateId(T entity);
 
-        PartitionKey ResolvePartitionKey();
+        PartitionKey ResolvePartitionKey(string partitionKey = null);
     }
 }

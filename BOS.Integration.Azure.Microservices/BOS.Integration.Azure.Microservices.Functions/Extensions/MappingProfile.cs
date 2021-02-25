@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
+using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 
@@ -39,6 +41,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.Data.ProductId))
                 .ForMember(x => x.Sku, x => x.MapFrom(x => x.Data.Variant5))
                 .ForMember(x => x.ResponseDateTime, x => x.MapFrom(x => x.Data.CreatedTime));
+
+            CreateMap<Product, LogInfo>()
+                .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
+                .ForMember(x => x.Object, x => x.MapFrom(x => x.Category));
+            CreateMap<LogInfo, ErpMessage>();
+            CreateMap<LogInfo, TimeLine>();
         }
 
         private PrimeCargoProductType? MapPrimeCargoProductType(string wmsProductType) => 

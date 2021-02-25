@@ -16,7 +16,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public override string GenerateId(Product entity) => entity.EanNo;
 
-        public override PartitionKey ResolvePartitionKey() => new PartitionKey(NavObjectCategory.Sku);
+        public override PartitionKey ResolvePartitionKey(string partitionKey = null) => new PartitionKey(NavObjectCategory.Sku);
 
         public ProductRepository(ICosmosDbContainerFactory factory)
             : base(factory)

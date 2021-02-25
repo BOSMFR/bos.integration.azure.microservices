@@ -1,5 +1,6 @@
 using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
@@ -16,13 +17,19 @@ namespace BOS.Integration.Azure.Microservices.Functions
     public class SkuRecipientFunction
     {
         private readonly IServiceBusService serviceBusService;
+        private readonly ILogService logService;
         private readonly IProductService productService;
         private readonly IMapper mapper;
 
-        public SkuRecipientFunction(IServiceBusService serviceBusService, IProductService productService, IMapper mapper)
+        public SkuRecipientFunction(
+            IServiceBusService serviceBusService, 
+            IProductService productService, 
+            IMapper mapper, 
+            ILogService logService)
         {
             this.serviceBusService = serviceBusService;
             this.productService = productService;
+            this.logService = logService;
             this.mapper = mapper;
         }
 
@@ -39,7 +46,13 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);
 
-                bool isNewObjectCreated = await this.productService.CreateOrUpdateProductAsync(productDTO, primeCargoIntegrationState);
+                var product = await this.productService.CreateOrUpdateProductAsync(productDTO, primeCargoIntegrationState);
+
+                //Create an erp message
+                var erpInfo = this.mapper.Map<LogInfo>(product);
+
+                await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
+                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.ErpMessageReceived, TimeLineStatus.Information);
 
                 if (primeCargoIntegrationState == PrimeCargoIntegrationState.Waiting)
                 {
@@ -52,10 +65,14 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
-                // Create a topic message
-                string primeCargoProductJson = JsonConvert.SerializeObject(primeCargoProduct);
+                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.PrepareForServiceBus, TimeLineStatus.Information);
 
-                var messageProperties = new Dictionary<string, object> { { "type", isNewObjectCreated ? "create" : "update" } };
+                // Create a topic message
+                var messageBody = new PrimeCargoProductRequestMessage { ErpInfo = erpInfo, PrimeCargoProduct = primeCargoProduct };
+
+                string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
+
+                var messageProperties = new Dictionary<string, object> { { "type", product.PrimeCargoIntegration.Delivered ? "update" : "create" } };
 
                 return this.serviceBusService.CreateMessage(primeCargoProductJson, messageProperties);
             }
