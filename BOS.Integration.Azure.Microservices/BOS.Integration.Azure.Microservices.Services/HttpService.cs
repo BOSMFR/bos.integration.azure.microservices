@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
+﻿using BOS.Integration.Azure.Microservices.Domain.DTOs;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -58,6 +59,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         }
 
         public async Task<V> PostAsync<T, V>(string url, T dataParams, string key = null, string token = null)
+            where V : HttpResponse, new()
         {
             using (var client = new HttpClient())
             {
@@ -81,14 +83,17 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (result.StatusCode == HttpStatusCode.OK)
                 {
                     var content = await result.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<V>(content);
+                    var response =  JsonConvert.DeserializeObject<V>(content);
+                    response.StatusCode = Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString();
+
+                    return response;
                 }
                 else
                 {
                     string errorMessage = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {bodyContent}";
                     this.logger.LogError(errorMessage);
 
-                    return default;
+                    return result.StatusCode == HttpStatusCode.RequestTimeout ? new V { StatusCode = Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString() } : default;
                 }
             }
         }

@@ -49,10 +49,10 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     // Create or update product into prime cargo if state is not equal to 'Waiting'                    
                     string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(product.StartDatePrimeCargoExport);
 
+                    var erpInfo = this.mapper.Map<LogInfo>(product);
+
                     if (primeCargoIntegrationState != PrimeCargoIntegrationState.Waiting)
                     {
-                        var erpInfo = this.mapper.Map<LogInfo>(product);
-
                         // Map the product to the prime cargo request object and check a description
                         var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(product);
 
@@ -68,6 +68,10 @@ namespace BOS.Integration.Azure.Microservices.Functions
                         var messageProperties = new Dictionary<string, object> { { "type", product.PrimeCargoIntegration.Delivered ? "update" : "create" } };
 
                         messages.Add(this.serviceBusService.CreateMessage(primeCargoProductJson, messageProperties));
+                    }
+                    else
+                    {
+                        await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.PreparingMessageCanceled + product.StartDatePrimeCargoExport, TimeLineStatus.Warning);
                     }
                 }
             }

@@ -24,7 +24,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                                                      string databaseName,
                                                      List<ContainerInfo> containers)
         {
-            CosmosClient client = new CosmosClient(endpointUrl, primaryKey);
+            CosmosClientOptions options = new CosmosClientOptions() { AllowBulkExecution = true };
+            CosmosClient client = new CosmosClient(endpointUrl, primaryKey, options);
             CosmosDbContainerFactory cosmosDbClientFactory = new CosmosDbContainerFactory(client, databaseName, containers);
 
             cosmosDbClientFactory.EnsureDbSetupAsync().Wait();

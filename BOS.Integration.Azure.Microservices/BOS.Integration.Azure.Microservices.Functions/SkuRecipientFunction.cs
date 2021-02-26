@@ -41,6 +41,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("SkuRecipient function recieved the message from the topic");
 
+                var timeLines = new List<TimeLineDTO>();
+
                 // Get product objetc from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(mySbMsg);
 
@@ -52,10 +54,15 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 var erpInfo = this.mapper.Map<LogInfo>(product);
 
                 await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
-                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.ErpMessageReceived, TimeLineStatus.Information);
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
                 if (primeCargoIntegrationState == PrimeCargoIntegrationState.Waiting)
                 {
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PreparingMessageCanceled + productDTO.StartDatePrimeCargoExport, Status = TimeLineStatus.Warning, DateTime = DateTime.Now });
+
+                    // Write time lines to database
+                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+
                     log.LogError("Sku is not sent to PrimeCargo because startDatePrimeCargoExport was in wrong format or value was more than today");
                     return null;
                 }
@@ -65,7 +72,10 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
-                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.PrepareForServiceBus, TimeLineStatus.Information);
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+
+                // Write time lines to database
+                await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                 // Create a topic message
                 var messageBody = new PrimeCargoProductRequestMessage { ErpInfo = erpInfo, PrimeCargoProduct = primeCargoProduct };
