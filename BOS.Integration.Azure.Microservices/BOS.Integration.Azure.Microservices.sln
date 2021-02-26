@@ -13,9 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BOS.Integration.Azure.Micro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BOS.Integration.Azure.Microservices.Infrastructure", "BOS.Integration.Azure.Microservices.Infrastructure\BOS.Integration.Azure.Microservices.Infrastructure.csproj", "{FC6701F1-038D-48BB-8389-DB4D68A60ACB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BOS.Integration.Azure.Microservices.Services.Abstraction", "BOS.Integration.Azure.Microservices.Services.Abstraction\BOS.Integration.Azure.Microservices.Services.Abstraction.csproj", "{A86EC859-9B68-41C2-B82C-AFA6E6820FE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BOS.Integration.Azure.Microservices.Services.Abstraction", "BOS.Integration.Azure.Microservices.Services.Abstraction\BOS.Integration.Azure.Microservices.Services.Abstraction.csproj", "{A86EC859-9B68-41C2-B82C-AFA6E6820FE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BOS.Integration.Azure.Microservices.Services", "BOS.Integration.Azure.Microservices.Services\BOS.Integration.Azure.Microservices.Services.csproj", "{F96EB74E-3B94-40E0-A8D5-F50293DDC87B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BOS.Integration.Azure.Microservices.Services", "BOS.Integration.Azure.Microservices.Services\BOS.Integration.Azure.Microservices.Services.csproj", "{F96EB74E-3B94-40E0-A8D5-F50293DDC87B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

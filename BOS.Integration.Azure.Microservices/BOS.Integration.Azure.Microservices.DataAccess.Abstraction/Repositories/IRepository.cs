@@ -7,14 +7,14 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
     public interface IRepository<TEntity>
         where TEntity : BaseEntity
     {
-        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task<IEnumerable<TEntity>> GetAllAsync(string partitionKey = null);
         
-        Task<TEntity> GetByIdAsync(string id);
+        Task<TEntity> GetByIdAsync(string id, string partitionKey = null);
 
-        Task AddAsync(TEntity item);
+        Task AddAsync(TEntity item, string partitionKey = null);
 
-        Task UpdateAsync(string id, TEntity item);
+        Task UpdateAsync(string id, TEntity item, string partitionKey = null);
 
-        Task DeleteAsync(string id);
+        Task DeleteAsync(string id, string partitionKey = null);
     }
 }

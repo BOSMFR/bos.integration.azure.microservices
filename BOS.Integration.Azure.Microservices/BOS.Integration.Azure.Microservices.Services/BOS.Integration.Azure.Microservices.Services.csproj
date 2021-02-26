@@ -6,10 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.12" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.DataAccess.Abstraction\BOS.Integration.Azure.Microservices.DataAccess.Abstraction.csproj" />
+    <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Infrastructure\BOS.Integration.Azure.Microservices.Infrastructure.csproj" />
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Services.Abstraction\BOS.Integration.Azure.Microservices.Services.Abstraction.csproj" />
   </ItemGroup>
 

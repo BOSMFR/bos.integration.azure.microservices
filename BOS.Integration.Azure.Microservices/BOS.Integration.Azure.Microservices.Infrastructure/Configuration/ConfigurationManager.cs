@@ -15,6 +15,8 @@ namespace BOS.Integration.Azure.Microservices.Infrastructure.Configuration
 
         public CosmosDbSettings CosmosDbSettings => this.GetSectionByName<CosmosDbSettings>("CosmosDbConfig");
 
+        public PrimeCargoSettings PrimeCargoSettings => this.GetSectionByName<PrimeCargoSettings>("PrimeCargoApiConfig");
+
         private T GetSectionByName<T>(string sectionName)
             where T : class
         {

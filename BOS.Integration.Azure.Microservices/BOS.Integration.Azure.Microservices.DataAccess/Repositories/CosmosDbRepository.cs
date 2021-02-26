@@ -14,7 +14,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public abstract string GenerateId(T entity);
 
-        public abstract PartitionKey ResolvePartitionKey(string entityId);
+        public abstract PartitionKey ResolvePartitionKey(string partitionKey = null);
 
         protected readonly Container _container;
 
@@ -23,9 +23,14 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             this._container = cosmosDbContainerFactory.GetContainer(ContainerName).Container;
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync(string partitionKey = null)
         {
-            FeedIterator<T> resultSetIterator = _container.GetItemQueryIterator<T>();
+            var requestOptions = new QueryRequestOptions
+            {
+                PartitionKey = this.ResolvePartitionKey(partitionKey)
+            };
+
+            FeedIterator<T> resultSetIterator = _container.GetItemQueryIterator<T>(requestOptions: requestOptions);
             List<T> results = new List<T>();
 
             while (resultSetIterator.HasMoreResults)
@@ -38,11 +43,11 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             return results;
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T> GetByIdAsync(string id, string partitionKey = null)
         {
             try
             {
-                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey(id));
+                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey(partitionKey));
 
                 return response.Resource;
             }
@@ -52,20 +57,20 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             }
         }
 
-        public async Task AddAsync(T item)
+        public async Task AddAsync(T item, string partitionKey = null)
         {
             item.Id = GenerateId(item);
-            await _container.CreateItemAsync<T>(item, ResolvePartitionKey(item.Id));
+            await _container.CreateItemAsync<T>(item, ResolvePartitionKey(partitionKey));
         }
 
-        public async Task UpdateAsync(string id, T item)
+        public async Task UpdateAsync(string id, T item, string partitionKey = null)
         {
-            await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey(id));
+            await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey(partitionKey));
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(string id, string partitionKey = null)
         {
-            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(id));
+            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(partitionKey));
         }
     }
 }

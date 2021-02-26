@@ -32,7 +32,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddApplicationInsightsTelemetry(configuration["ApplicationInsights:InstrumentationKey"]);
 
             builder.Services.AddTransient<IConfigurationManager, ConfigurationManager>();
+            builder.Services.AddTransient<IHttpService, HttpService>();
             builder.Services.AddTransient<IProductService, ProductService>();
+            builder.Services.AddTransient<IValidationService, ValidationService>();
+            builder.Services.AddTransient<IPrimeCargoService, PrimeCargoService>();
+            builder.Services.AddTransient<IServiceBusService, ServiceBusService>();
+            builder.Services.AddTransient<ILogService, LogService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
@@ -42,6 +47,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
                                           cosmosDbConfig.Containers);
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IErpMessageRepository, ErpMessageRepository>();
+            builder.Services.AddScoped<ITimeLineRepository, TimeLineRepository>();
 
             this.ConfigureAutoMapper(builder.Services);
         }
