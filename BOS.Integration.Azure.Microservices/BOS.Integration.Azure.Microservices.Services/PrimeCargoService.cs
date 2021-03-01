@@ -95,6 +95,8 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                throw new Exception("Request time out");
             }
 
             if (primeCargoResponse == null)

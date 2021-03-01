@@ -17,7 +17,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             this.primeCargoService = primeCargoService;
         }
 
-
+        [FixedDelayRetry(3, "00:05:00")]
         [FunctionName("PrimeCargoProductRequestUpdateFunction")]
         [return: ServiceBus("azure-topic-prime-cargo-wms-product-response", Connection = "serviceBus")]
         public async Task<Message> Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-product-request", "azure-sub-prime-cargo-product-update-request", Connection = "serviceBus")] string mySbMsg, ILogger log)

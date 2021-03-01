@@ -21,8 +21,10 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<Product> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
+        public async Task<(Product, bool)> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
         {
+            bool isNewObjectCreated = false;
+
             var newProduct = this.mapper.Map<Product>(productDTO);
 
             var product = await repository.GetByIdAsync(newProduct.EanNo);
@@ -35,17 +37,20 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newProduct.ReceivedFromErp = DateTime.Now.ToString("yyyyMMdd hh:mm:ss");
 
                 await repository.AddAsync(newProduct);
+
+                isNewObjectCreated = true;
             }
             else
             {
                 newProduct.Id = product.Id;
                 newProduct.Category = product.Category;
+                newProduct.PrimeCargoProductId = product.PrimeCargoProductId;
                 newProduct.ReceivedFromErp = product.ReceivedFromErp;
 
                 await repository.UpdateAsync(newProduct.Id, newProduct);
             }
 
-            return newProduct;
+            return (newProduct, isNewObjectCreated);
         }
 
         public async Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string primeCargoIntegrationState)

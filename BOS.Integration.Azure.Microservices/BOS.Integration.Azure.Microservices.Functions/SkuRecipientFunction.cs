@@ -33,6 +33,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             this.mapper = mapper;
         }
 
+        [FixedDelayRetry(3, "00:05:00")]
         [FunctionName("SkuRecipientFunction")]
         [return: ServiceBus("azure-topic-prime-cargo-wms-product-request", Connection = "serviceBus")]
         public async Task<Message> Run([ServiceBusTrigger("azure-topic-mesage-receiver-from-nav", "azure-sku-recipient-subscription", Connection = "serviceBus")] string mySbMsg, ILogger log)
@@ -48,7 +49,10 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);
 
-                var product = await this.productService.CreateOrUpdateProductAsync(productDTO, primeCargoIntegrationState);
+                var createOrUpdateResponse = await this.productService.CreateOrUpdateProductAsync(productDTO, primeCargoIntegrationState);
+
+                var product = createOrUpdateResponse.Item1;
+                bool isNewObjectCreated = createOrUpdateResponse.Item2;
 
                 //Create an erp message
                 var erpInfo = this.mapper.Map<LogInfo>(product);
@@ -67,6 +71,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     return null;
                 }
 
+                // Check if product was created in prime cargo
+                if (!isNewObjectCreated && (!product.PrimeCargoProductId.HasValue || product.PrimeCargoProductId == 0))
+                {
+                    throw new Exception("Cannot proceed with updating SKU into prime cargo because it has not been delivered yet");
+                }
+
                 // Map the product to the prime cargo request object and check a description
                 var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO);
 
@@ -82,7 +92,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
 
-                var messageProperties = new Dictionary<string, object> { { "type", product.PrimeCargoIntegration.Delivered ? "update" : "create" } };
+                var messageProperties = new Dictionary<string, object> { { "type", isNewObjectCreated ? "create" : "update" } };
 
                 return this.serviceBusService.CreateMessage(primeCargoProductJson, messageProperties);
             }
