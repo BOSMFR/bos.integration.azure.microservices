@@ -42,11 +42,9 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newErpMessage.Status = status;
 
                 erpMessages.Add(newErpMessage);
-
-                await erpMessageRepository.AddAsync(newErpMessage, erpInfo.Object);
             }
 
-            //await erpMessageRepository.AddRangeAsync(erpMessages, erpInfo.Object);
+            await erpMessageRepository.AddRangeAsync(erpMessages, erpInfo.Object);
         }
 
         public async Task AddTimeLineAsync(LogInfo erpInfo, string description, string status)
@@ -73,11 +71,9 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newTimeLine.Status = timeLine.Status;
 
                 newTimeLines.Add(newTimeLine);
-
-                await timeLineRepository.AddAsync(newTimeLine, erpInfo.Object);
             }
 
-            //await timeLineRepository.AddRangeAsync(newTimeLines, erpInfo.Object);
+            await timeLineRepository.AddRangeAsync(newTimeLines, erpInfo.Object);
         }
     }
 }

@@ -69,6 +69,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
             foreach (var itemToInsert in items)
             {
+                itemToInsert.Id = GenerateId(itemToInsert);
                 tasks.Add(_container.CreateItemAsync(itemToInsert, ResolvePartitionKey(partitionKey)));
             }
 
