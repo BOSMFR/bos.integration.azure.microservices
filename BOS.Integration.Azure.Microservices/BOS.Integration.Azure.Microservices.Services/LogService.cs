@@ -3,8 +3,10 @@ using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -20,6 +22,20 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.erpMessageRepository = erpMessageRepository;
             this.timeLineRepository = timeLineRepository;
             this.mapper = mapper;
+        }
+
+        public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineRequestDTO timeLineRequest)
+        {
+            timeLineRequest.Objects = timeLineRequest.Objects?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+            timeLineRequest.Statuses = timeLineRequest.Statuses?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+
+            timeLineRequest.FromDate ??= DateTime.MinValue;
+            timeLineRequest.ToDate ??= DateTime.MaxValue;
+
+            var timeLines = await timeLineRepository.GetByFilterAsync(timeLineRequest);
+
+            return timeLines.Where(t => DateHelper.ConvertStringToDateTime(t.DateTime) > timeLineRequest.FromDate
+                                            && DateHelper.ConvertStringToDateTime(t.DateTime) < timeLineRequest.ToDate).ToList();
         }
 
         public async Task AddErpMessageAsync(LogInfo erpInfo, string status)
@@ -51,7 +67,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-            newTimeLine.DateTime = DateTime.Now.ToString("yyyyMMdd hh:mm:ss");
+            newTimeLine.DateTime = DateHelper.ConvertDateTimeToString(DateTime.Now);
             newTimeLine.Description = description;
             newTimeLine.Status = status;
 
@@ -66,7 +82,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-                newTimeLine.DateTime = timeLine.DateTime.ToString("yyyyMMdd hh:mm:ss");
+                newTimeLine.DateTime = DateHelper.ConvertDateTimeToString(timeLine.DateTime);
                 newTimeLine.Description = timeLine.Description;
                 newTimeLine.Status = timeLine.Status;
 

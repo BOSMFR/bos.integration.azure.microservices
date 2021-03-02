@@ -4,5 +4,8 @@
     {
         public const string Sku = "sku";
         public const string Item = "item";
+        public const string Style = "style";
+        public const string Inventory = "inventory";
+        public const string Order = "order";
     }
 }
