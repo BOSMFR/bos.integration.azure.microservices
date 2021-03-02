@@ -40,7 +40,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.EnaNo, x => x.MapFrom(x => x.Data.Barcode))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.Data.ProductId))
                 .ForMember(x => x.Sku, x => x.MapFrom(x => x.Data.Variant5))
-                .ForMember(x => x.ResponseDateTime, x => x.MapFrom(x => x.Data.CreatedTime));
+                .ForMember(x => x.ResponseDateTime, x => x.MapFrom(x => x.Data.CreatedTime))
+                .ForMember(x => x.ResponseCode, x => x.MapFrom(x => x.StatusCode));
 
             CreateMap<Product, LogInfo>()
                 .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))

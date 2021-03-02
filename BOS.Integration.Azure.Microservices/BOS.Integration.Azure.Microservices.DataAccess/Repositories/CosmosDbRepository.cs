@@ -63,6 +63,19 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             await _container.CreateItemAsync<T>(item, ResolvePartitionKey(partitionKey));
         }
 
+        public async Task AddRangeAsync(ICollection<T> items, string partitionKey = null)
+        {
+            var tasks = new List<Task>();
+
+            foreach (var itemToInsert in items)
+            {
+                itemToInsert.Id = GenerateId(itemToInsert);
+                tasks.Add(_container.CreateItemAsync(itemToInsert, ResolvePartitionKey(partitionKey)));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
         public async Task UpdateAsync(string id, T item, string partitionKey = null)
         {
             await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey(partitionKey));

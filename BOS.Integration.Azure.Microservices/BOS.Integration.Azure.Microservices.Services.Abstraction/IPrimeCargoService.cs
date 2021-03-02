@@ -1,12 +1,12 @@
-﻿using BOS.Integration.Azure.Microservices.Domain;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
-using BOS.Integration.Azure.Microservices.Domain.Enums;
+﻿using BOS.Integration.Azure.Microservices.Domain.Enums;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface IPrimeCargoService
     {
-        Task<ActionExecutionResult> CreateOrUpdatePrimeCargoProductAsync(PrimeCargoProductRequestDTO primeCargoProduct, ActionType actionType);
+        Task<Message> CreateOrUpdatePrimeCargoProductAsync(string mySbMsg, ILogger log, ActionType actionType);
     }
 }

@@ -13,6 +13,8 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
 
         Task AddAsync(TEntity item, string partitionKey = null);
 
+        Task AddRangeAsync(ICollection<TEntity> items, string partitionKey = null);
+
         Task UpdateAsync(string id, TEntity item, string partitionKey = null);
 
         Task DeleteAsync(string id, string partitionKey = null);
