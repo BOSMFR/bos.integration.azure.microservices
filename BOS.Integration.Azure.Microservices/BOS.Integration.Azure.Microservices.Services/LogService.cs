@@ -5,6 +5,7 @@ using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -20,6 +21,18 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.erpMessageRepository = erpMessageRepository;
             this.timeLineRepository = timeLineRepository;
             this.mapper = mapper;
+        }
+
+        public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineFilterDTO timeLineFilter)
+        {
+            timeLineFilter.Objects = timeLineFilter.Objects?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+            timeLineFilter.Statuses = timeLineFilter.Statuses?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+
+            timeLineFilter.FromDate ??= DateTime.MinValue;
+            timeLineFilter.ToDate ??= DateTime.MaxValue;
+
+            return await timeLineRepository.GetByFilterAsync(timeLineFilter);
+
         }
 
         public async Task AddErpMessageAsync(LogInfo erpInfo, string status)
@@ -51,7 +64,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-            newTimeLine.DateTime = DateTime.Now.ToString("yyyyMMdd hh:mm:ss");
+            newTimeLine.DateTime = DateTime.Now;
             newTimeLine.Description = description;
             newTimeLine.Status = status;
 
@@ -66,7 +79,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-                newTimeLine.DateTime = timeLine.DateTime.ToString("yyyyMMdd hh:mm:ss");
+                newTimeLine.DateTime = timeLine.DateTime;
                 newTimeLine.Description = timeLine.Description;
                 newTimeLine.Status = timeLine.Status;
 

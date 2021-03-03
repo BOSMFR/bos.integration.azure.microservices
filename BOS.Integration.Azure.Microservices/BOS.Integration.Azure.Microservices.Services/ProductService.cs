@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (product == null)
             {
                 newProduct.Category = NavObjectCategory.Sku;
-                newProduct.ReceivedFromErp = DateTime.Now.ToString("yyyyMMdd hh:mm:ss");
+                newProduct.ReceivedFromErp = DateTime.Now;
 
                 await repository.AddAsync(newProduct);
 
