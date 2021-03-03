@@ -3,7 +3,6 @@ using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
-using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,18 +23,16 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineRequestDTO timeLineRequest)
+        public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineFilterDTO timeLineFilter)
         {
-            timeLineRequest.Objects = timeLineRequest.Objects?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
-            timeLineRequest.Statuses = timeLineRequest.Statuses?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+            timeLineFilter.Objects = timeLineFilter.Objects?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
+            timeLineFilter.Statuses = timeLineFilter.Statuses?.Select(x => x.ToLower())?.ToList() ?? new List<string>();
 
-            timeLineRequest.FromDate ??= DateTime.MinValue;
-            timeLineRequest.ToDate ??= DateTime.MaxValue;
+            timeLineFilter.FromDate ??= DateTime.MinValue;
+            timeLineFilter.ToDate ??= DateTime.MaxValue;
 
-            var timeLines = await timeLineRepository.GetByFilterAsync(timeLineRequest);
+            return await timeLineRepository.GetByFilterAsync(timeLineFilter);
 
-            return timeLines.Where(t => DateHelper.ConvertStringToDateTime(t.DateTime) > timeLineRequest.FromDate
-                                            && DateHelper.ConvertStringToDateTime(t.DateTime) < timeLineRequest.ToDate).ToList();
         }
 
         public async Task AddErpMessageAsync(LogInfo erpInfo, string status)
@@ -67,7 +64,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-            newTimeLine.DateTime = DateHelper.ConvertDateTimeToString(DateTime.Now);
+            newTimeLine.DateTime = DateTime.Now;
             newTimeLine.Description = description;
             newTimeLine.Status = status;
 
@@ -82,7 +79,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-                newTimeLine.DateTime = DateHelper.ConvertDateTimeToString(timeLine.DateTime);
+                newTimeLine.DateTime = timeLine.DateTime;
                 newTimeLine.Description = timeLine.Description;
                 newTimeLine.Status = timeLine.Status;
 

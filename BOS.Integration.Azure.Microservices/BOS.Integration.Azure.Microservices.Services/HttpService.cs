@@ -84,7 +84,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 {
                     var content = await result.Content.ReadAsStringAsync();
                     var response =  JsonConvert.DeserializeObject<V>(content);
-                    response.StatusCode = Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString();
+                    response.StatusCode = Convert.ToInt32(HttpStatusCode.OK).ToString();
 
                     return response;
                 }

@@ -7,6 +7,6 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
 {
     public interface ITimeLineRepository : IRepository<TimeLine>
     {
-        Task<List<TimeLine>> GetByFilterAsync(TimeLineRequestDTO timeLineRequest);
+        Task<List<TimeLine>> GetByFilterAsync(TimeLineFilterDTO timeLineFilter);
     }
 }

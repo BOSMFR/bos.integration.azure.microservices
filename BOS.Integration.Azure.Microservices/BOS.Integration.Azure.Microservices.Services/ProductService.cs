@@ -35,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (product == null)
             {
                 newProduct.Category = NavObjectCategory.Sku;
-                newProduct.ReceivedFromErp = DateHelper.ConvertDateTimeToString(DateTime.Now);
+                newProduct.ReceivedFromErp = DateTime.Now;
 
                 await repository.AddAsync(newProduct);
 

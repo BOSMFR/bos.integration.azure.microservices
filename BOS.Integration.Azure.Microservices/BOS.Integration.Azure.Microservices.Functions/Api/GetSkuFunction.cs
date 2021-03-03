@@ -1,39 +1,33 @@
-using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions.Api
 {
-    public class GetTimeLinesFunction
+    public class GetSkuFunction
     {
-        private readonly ILogService logService;
+        private readonly IProductService productService;
 
-        public GetTimeLinesFunction(ILogService logService)
+        public GetSkuFunction(IProductService productService)
         {
-            this.logService = logService;
+            this.productService = productService;
         }
 
-        [FunctionName("GetTimeLinesFunction")]
+        [FunctionName("GetSkuFunction")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("HTTP trigger function - \"GetTimeLinesFunction\" processed a request.");
+            log.LogInformation("HTTP trigger function - \"GetSkuFunction\" processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            var timeLineFilter = JsonConvert.DeserializeObject<TimeLineFilterDTO>(requestBody);
-
-            var timeLines = await logService.GetTimeLinesByFilterAsync(timeLineFilter);
-
-            return new OkObjectResult(timeLines);
+            return new OkObjectResult(null);
         }
     }
 }

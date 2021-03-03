@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BOS.Integration.Azure.Microservices.Domain.DTOs
 {
-    public class TimeLineRequestDTO
+    public class TimeLineFilterDTO
     {
         public DateTime? FromDate { get; set; }
 

@@ -7,7 +7,7 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface ILogService
     {
-        Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineRequestDTO timeLineRequest);
+        Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineFilterDTO timeLineFilter);
 
         Task AddErpMessageAsync(LogInfo erpInfo, string status);
 

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace BOS.Integration.Azure.Microservices.Domain.Entities
 {
@@ -13,7 +14,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities
 
         public string ErpDateTime { get; set; }
 
-        public string ReceivedFromErp { get; set; }
+        public DateTime ReceivedFromErp { get; set; }
 
         public string Status { get; set; }
     }
