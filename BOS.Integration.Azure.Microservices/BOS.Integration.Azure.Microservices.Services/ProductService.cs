@@ -4,7 +4,6 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
-using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,6 +19,14 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             this.repository = repository;
             this.mapper = mapper;
+        }
+
+        public async Task<List<Product>> GetProductByFilterAsync(ProductFilterDTO productFilter)
+        {
+            productFilter.FromDate ??= DateTime.MinValue;
+            productFilter.ToDate ??= DateTime.MaxValue;
+
+            return await this.repository.GetByFilterAsync(productFilter);
         }
 
         public async Task<(Product, bool)> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)

@@ -14,6 +14,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<ProductDTO, Product>();
             CreateMap<Product, ProductDTO>();
 
+            CreateMap<Product, ProductGridDTO>()
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
+
             CreateMap<ProductDTO, PrimeCargoProductRequestDTO>()
                 .ForMember(x => x.Barcode, x => x.MapFrom(x => x.EanNo))
                 .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
