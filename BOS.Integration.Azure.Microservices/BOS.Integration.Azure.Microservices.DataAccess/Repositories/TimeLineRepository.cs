@@ -35,5 +35,12 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
             return (await iterator.ReadNextAsync()).ToList();
         }
+
+        public async Task<List<TimeLine>> GetByObjectIdAsync(string id)
+        {
+            var iterator = _container.GetItemLinqQueryable<TimeLine>().Where(x => x.ObjectId == id).ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).ToList();
+        }
     }
 }

@@ -21,14 +21,12 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<List<ProductGridDTO>> GetProductByFilterAsync(ProductFilterDTO productFilter)
+        public async Task<List<Product>> GetProductByFilterAsync(ProductFilterDTO productFilter)
         {
             productFilter.FromDate ??= DateTime.MinValue;
             productFilter.ToDate ??= DateTime.MaxValue;
 
-            var products = await this.repository.GetByFilterAsync(productFilter);
-
-            return this.mapper.Map<List<ProductGridDTO>>(products);
+            return await this.repository.GetByFilterAsync(productFilter);
         }
 
         public async Task<(Product, bool)> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)

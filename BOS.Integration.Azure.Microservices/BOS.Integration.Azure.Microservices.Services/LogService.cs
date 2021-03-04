@@ -23,6 +23,13 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
+        public async Task<LogDTO> GetLogsByObjectIdAsync(string objectId) =>
+            new LogDTO
+            {
+                TimeLines = await timeLineRepository.GetByObjectIdAsync(objectId),
+                ErpMessages = await erpMessageRepository.GetByObjectIdAsync(objectId)
+            };
+
         public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineFilterDTO timeLineFilter)
         {
             timeLineFilter.Objects = timeLineFilter.Objects?.Select(x => x.ToLower())?.ToList() ?? new List<string>();

@@ -8,21 +8,21 @@ using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions.Api
 {
-    public class GetSkuByIdFunction
+    public class GetLogsByObjectIdFunction
     {
-        private readonly IProductService productService;
+        private readonly ILogService logService;
 
-        public GetSkuByIdFunction(IProductService productService)
+        public GetLogsByObjectIdFunction(ILogService logService)
         {
-            this.productService = productService;
+            this.logService = logService;
         }
 
-        [FunctionName("GetSkuByIdFunction")]
+        [FunctionName("GetLogsByObjectIdFunction")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "GetSkuById")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "GetLogsByObjectId")] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("HTTP trigger function - \"GetSkuByIdFunction\" processed a request.");
+            log.LogInformation("HTTP trigger function - \"GetLogsByObjectIdFunction\" processed a request.");
 
             if (!req.Query.ContainsKey("id"))
             {
@@ -31,9 +31,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
             string id = req.Query["id"];
 
-            //var product = await this.productService.GetProductByIdAsync(id);
+            var logs = await this.logService.GetLogsByObjectIdAsync(id);
 
-            return new OkObjectResult(null);
+            return new OkObjectResult(logs);
         }
     }
 }

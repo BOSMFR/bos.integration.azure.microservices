@@ -7,7 +7,7 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface IProductService
     {
-        Task<List<ProductGridDTO>> GetProductByFilterAsync(ProductFilterDTO productFilter);
+        Task<List<Product>> GetProductByFilterAsync(ProductFilterDTO productFilter);
 
         Task<(Product, bool)> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null);
 
