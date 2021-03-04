@@ -22,7 +22,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
         [FunctionName("GetTimeLinesFunction")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "GetTimeLines")] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("HTTP trigger function - \"GetTimeLinesFunction\" processed a request.");
