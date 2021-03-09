@@ -3,6 +3,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 
 namespace BOS.Integration.Azure.Microservices.Functions.Extensions
@@ -51,6 +52,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.Object, x => x.MapFrom(x => x.Category));
             CreateMap<LogInfo, ErpMessage>();
             CreateMap<LogInfo, TimeLine>();
+
+            CreateMap<Shop, ShopDTO>()
+                .ForMember(x => x.ApiUrl, x => x.MapFrom(x => x.Api.ServerUrl));
         }
 
         private PrimeCargoProductType? MapPrimeCargoProductType(string wmsProductType) => 
