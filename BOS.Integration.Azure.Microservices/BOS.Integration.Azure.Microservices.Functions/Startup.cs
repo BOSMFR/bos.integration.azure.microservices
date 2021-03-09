@@ -39,6 +39,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IServiceBusService, ServiceBusService>();
             builder.Services.AddTransient<ILogService, LogService>();
             builder.Services.AddTransient<IBlobService, BlobService>();
+            builder.Services.AddTransient<IShopService, ShopService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
@@ -50,6 +51,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IErpMessageRepository, ErpMessageRepository>();
             builder.Services.AddScoped<ITimeLineRepository, TimeLineRepository>();
+            builder.Services.AddScoped<IShopRepository, ShopRepository>();
 
             this.ConfigureAutoMapper(builder.Services);
         }
