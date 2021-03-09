@@ -13,6 +13,10 @@ namespace BOS.Integration.Azure.Microservices.Infrastructure.Configuration
 
         public string ServiceBusConnectionString => this.configuration.GetConnectionString("servicebus");
 
+        public string AzureStorageConnectionString => this.configuration.GetConnectionString("storage");
+
+        public string AzureMainBlobContainer => this.configuration["AzureBlobContainer"];
+
         public CosmosDbSettings CosmosDbSettings => this.GetSectionByName<CosmosDbSettings>("CosmosDbConfig");
 
         public PrimeCargoSettings PrimeCargoSettings => this.GetSectionByName<PrimeCargoSettings>("PrimeCargoApiConfig");

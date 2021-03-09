@@ -4,6 +4,10 @@
     {
         string ServiceBusConnectionString { get; }
 
+        string AzureStorageConnectionString { get; }
+
+        string AzureMainBlobContainer { get; }
+
         CosmosDbSettings CosmosDbSettings { get; }
 
         PrimeCargoSettings PrimeCargoSettings { get; }

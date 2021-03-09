@@ -20,17 +20,20 @@ namespace BOS.Integration.Azure.Microservices.Functions
         private readonly ILogService logService;
         private readonly IProductService productService;
         private readonly IMapper mapper;
+        private readonly IBlobService blobService;
 
         public SkuRecipientFunction(
             IServiceBusService serviceBusService, 
             IProductService productService, 
             IMapper mapper, 
-            ILogService logService)
+            ILogService logService,
+            IBlobService blobService)
         {
             this.serviceBusService = serviceBusService;
             this.productService = productService;
             this.logService = logService;
             this.mapper = mapper;
+            this.blobService = blobService;
         }
 
         [FixedDelayRetry(3, "00:05:00")]
@@ -44,8 +47,11 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 var timeLines = new List<TimeLineDTO>();
 
+                // Read file from blob storage
+                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+
                 // Get product objetc from the topic message and create or update it in the storage
-                var productDTO = JsonConvert.DeserializeObject<ProductDTO>(mySbMsg);
+                var productDTO = JsonConvert.DeserializeObject<ProductDTO>(fileContent);
 
                 string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);
 
