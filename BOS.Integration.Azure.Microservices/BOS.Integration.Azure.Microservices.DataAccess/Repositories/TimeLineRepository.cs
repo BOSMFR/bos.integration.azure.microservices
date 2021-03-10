@@ -18,7 +18,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public override string GenerateId(TimeLine entity) => Guid.NewGuid().ToString();
 
-        public override PartitionKey ResolvePartitionKey(string partitionKey = null) => new PartitionKey(partitionKey);
+        public override PartitionKey ResolvePartitionKey(string partitionKey) => new PartitionKey(partitionKey);
 
         public TimeLineRepository(ICosmosDbContainerFactory factory)
             : base(factory)

@@ -7,8 +7,8 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
 {
     public interface IProductRepository : IRepository<Product>
     {
-        Task<List<Product>> GetByFilterAsync(ProductFilterDTO productFilter);
+        Task<List<Product>> GetByFilterAsync(ProductFilterDTO productFilter, string category = null);
 
-        Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string state);
+        Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string state, string category = null);
     }
 }

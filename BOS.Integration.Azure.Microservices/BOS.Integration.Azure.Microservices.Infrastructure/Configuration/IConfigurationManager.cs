@@ -11,5 +11,7 @@
         CosmosDbSettings CosmosDbSettings { get; }
 
         PrimeCargoSettings PrimeCargoSettings { get; }
+
+        PlytixSettings PlytixSettings { get; }
     }
 }
