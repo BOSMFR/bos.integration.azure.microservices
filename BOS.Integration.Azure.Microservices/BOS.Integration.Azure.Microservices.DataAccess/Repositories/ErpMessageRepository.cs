@@ -16,7 +16,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public override string GenerateId(ErpMessage entity) => Guid.NewGuid().ToString();
 
-        public override PartitionKey ResolvePartitionKey(string partitionKey = null) => new PartitionKey(partitionKey);
+        public override PartitionKey ResolvePartitionKey(string partitionKey) => new PartitionKey(partitionKey);
 
         public ErpMessageRepository(ICosmosDbContainerFactory factory)
             : base(factory)

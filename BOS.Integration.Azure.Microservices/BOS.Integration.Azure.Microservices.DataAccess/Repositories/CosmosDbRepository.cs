@@ -14,7 +14,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public abstract string GenerateId(T entity);
 
-        public abstract PartitionKey ResolvePartitionKey(string partitionKey = null);
+        public abstract PartitionKey ResolvePartitionKey(string partitionKey);
 
         protected readonly Container _container;
 
@@ -25,10 +25,15 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync(string partitionKey = null)
         {
-            var requestOptions = new QueryRequestOptions
+            QueryRequestOptions requestOptions = null;
+
+            if (!string.IsNullOrEmpty(partitionKey))
             {
-                PartitionKey = this.ResolvePartitionKey(partitionKey)
-            };
+                requestOptions = new QueryRequestOptions
+                {
+                    PartitionKey = this.ResolvePartitionKey(partitionKey)
+                };
+            }
 
             FeedIterator<T> resultSetIterator = _container.GetItemQueryIterator<T>(requestOptions: requestOptions);
             List<T> results = new List<T>();
@@ -47,7 +52,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         {
             try
             {
-                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey(partitionKey));
+                ItemResponse<T> response = await _container.ReadItemAsync<T>(id, ResolvePartitionKey(partitionKey ?? id));
 
                 return response.Resource;
             }
@@ -60,7 +65,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         public async Task AddAsync(T item, string partitionKey = null)
         {
             item.Id = GenerateId(item);
-            await _container.CreateItemAsync<T>(item, ResolvePartitionKey(partitionKey));
+            await _container.CreateItemAsync(item, ResolvePartitionKey(partitionKey ?? item.Id));
         }
 
         public async Task AddRangeAsync(ICollection<T> items, string partitionKey = null)
@@ -70,7 +75,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             foreach (var itemToInsert in items)
             {
                 itemToInsert.Id = GenerateId(itemToInsert);
-                tasks.Add(_container.CreateItemAsync(itemToInsert, ResolvePartitionKey(partitionKey)));
+                tasks.Add(_container.CreateItemAsync(itemToInsert, ResolvePartitionKey(partitionKey ?? itemToInsert.Id)));
             }
 
             await Task.WhenAll(tasks);
@@ -78,12 +83,29 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
         public async Task UpdateAsync(string id, T item, string partitionKey = null)
         {
-            await this._container.UpsertItemAsync<T>(item, ResolvePartitionKey(partitionKey));
+            await this._container.UpsertItemAsync(item, ResolvePartitionKey(partitionKey ?? id));
+        }
+
+        public async Task UpdateRangeAsync(ICollection<T> items, string partitionKey = null)
+        {
+            var tasks = new List<Task>();
+
+            foreach (var itemToInsert in items)
+            {
+                if (string.IsNullOrEmpty(itemToInsert.Id))
+                {
+                    itemToInsert.Id = GenerateId(itemToInsert);
+                }
+                
+                tasks.Add(_container.UpsertItemAsync(itemToInsert, ResolvePartitionKey(partitionKey ?? itemToInsert.Id)));
+            }
+
+            await Task.WhenAll(tasks);
         }
 
         public async Task DeleteAsync(string id, string partitionKey = null)
         {
-            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(partitionKey));
+            await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(partitionKey ?? id));
         }
     }
 }

@@ -63,12 +63,10 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             using (var client = new HttpClient())
             {
-                if (string.IsNullOrEmpty(key))
+                if (!string.IsNullOrEmpty(key))
                 {
-                    return default;
+                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
                 }
-
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
 
                 if (!string.IsNullOrEmpty(token))
                 {

@@ -21,6 +21,8 @@ namespace BOS.Integration.Azure.Microservices.Infrastructure.Configuration
 
         public PrimeCargoSettings PrimeCargoSettings => this.GetSectionByName<PrimeCargoSettings>("PrimeCargoApiConfig");
 
+        public PlytixSettings PlytixSettings => this.GetSectionByName<PlytixSettings>("PlytixApiConfig");
+
         private T GetSectionByName<T>(string sectionName)
             where T : class
         {

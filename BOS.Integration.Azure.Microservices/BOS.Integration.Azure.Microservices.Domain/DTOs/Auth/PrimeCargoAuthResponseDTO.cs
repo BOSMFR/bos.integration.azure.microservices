@@ -2,7 +2,7 @@
 {
     public class PrimeCargoAuthResponseDTO
     {
-        public AuthData Data { get; set; }
+        public PrimeCargoAuthData Data { get; set; }
 
         public bool Success { get; set; }
 
