@@ -17,12 +17,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
             this.plytixService = plytixService;
         }
 
-        [FunctionName("SetProductAttributesFunction")]
+        [FunctionName("SynchronizeProductAttributesFunction")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SynchronizeProductAttributes")] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("HTTP trigger function - \"SetProductAttributesFunction\" processed a request.");
+            log.LogInformation("HTTP trigger function - \"SynchronizeProductAttributesFunction\" processed a request.");
 
             var result = await this.plytixService.SynchronizeProductAttributesAsync();
 
