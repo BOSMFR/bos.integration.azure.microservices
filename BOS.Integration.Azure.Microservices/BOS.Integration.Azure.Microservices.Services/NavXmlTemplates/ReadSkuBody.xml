@@ -1,0 +1,8 @@
+﻿<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ean="urn:microsoft-dynamics-schemas/page/eannoupdate">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ean:Read>
+         <ean:EANNo>{0}</ean:EANNo>
+      </ean:Read>
+   </soapenv:Body>
+</soapenv:Envelope>

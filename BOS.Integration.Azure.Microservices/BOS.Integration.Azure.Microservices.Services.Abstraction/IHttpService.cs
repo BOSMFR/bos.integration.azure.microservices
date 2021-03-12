@@ -8,6 +8,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<T> GetAsync<T>(string url, string key = null, string token = null, PrimeCargoAuthRequestDTO authBody = null);
 
+        Task<string> PostSoapAsync(string url, string xmlBody, string soapAction, string userName = null, string password = null);
+
         Task<V> PostAsync<T, V>(string url, T dataParams, string key = null, string token = null) where V : HttpResponse, new();
     }
 }

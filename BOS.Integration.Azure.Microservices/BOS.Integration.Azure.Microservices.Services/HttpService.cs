@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -58,6 +59,53 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
+        public async Task<string> PostSoapAsync(string url, string xmlBody, string soapAction, string userName = null, string password = null)
+        {
+            try
+            {
+                HttpMessageHandler handler = new HttpClientHandler()
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+
+                using (var httpClient = new HttpClient(handler))
+                {
+                    httpClient.BaseAddress = new Uri(url);
+
+                    var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
+
+                    httpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
+
+                    if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
+                    {
+                        httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{userName}:{password}")));
+                    }
+
+                    HttpResponseMessage response = await httpClient.PostAsync(url, content);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (StreamReader stream = new StreamReader(response.Content.ReadAsStreamAsync().Result))
+                        {
+                            return stream.ReadToEnd();
+                        }
+                    }
+                    else
+                    {
+                        string errorMessage = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
+                        this.logger.LogError(errorMessage);
+
+                        return errorMessage;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
         public async Task<V> PostAsync<T, V>(string url, T dataParams, string key = null, string token = null)
             where V : HttpResponse, new()
         {
@@ -81,7 +129,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (result.StatusCode == HttpStatusCode.OK)
                 {
                     var content = await result.Content.ReadAsStringAsync();
-                    var response =  JsonConvert.DeserializeObject<V>(content);
+                    var response = JsonConvert.DeserializeObject<V>(content);
                     response.StatusCode = Convert.ToInt32(HttpStatusCode.OK).ToString();
 
                     return response;

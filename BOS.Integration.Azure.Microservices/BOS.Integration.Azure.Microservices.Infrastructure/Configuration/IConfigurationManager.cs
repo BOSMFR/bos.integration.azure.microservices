@@ -13,5 +13,7 @@
         PrimeCargoSettings PrimeCargoSettings { get; }
 
         PlytixSettings PlytixSettings { get; }
+
+        NavSettings NavSettings { get; }
     }
 }
