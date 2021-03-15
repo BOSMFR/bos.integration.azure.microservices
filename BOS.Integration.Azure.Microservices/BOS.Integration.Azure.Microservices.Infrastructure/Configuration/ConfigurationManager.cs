@@ -23,6 +23,8 @@ namespace BOS.Integration.Azure.Microservices.Infrastructure.Configuration
 
         public PlytixSettings PlytixSettings => this.GetSectionByName<PlytixSettings>("PlytixApiConfig");
 
+        public NavSettings NavSettings => this.GetSectionByName<NavSettings>("NavApiConfig");
+
         private T GetSectionByName<T>(string sectionName)
             where T : class
         {

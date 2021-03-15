@@ -41,6 +41,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IBlobService, BlobService>();
             builder.Services.AddTransient<IShopService, ShopService>();
             builder.Services.AddTransient<IPlytixService, PlytixService>();
+            builder.Services.AddTransient<INavService, NavService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
