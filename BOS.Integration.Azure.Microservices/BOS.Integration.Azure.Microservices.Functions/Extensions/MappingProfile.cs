@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Collection;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
@@ -14,6 +16,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
         {
             CreateMap<ProductDTO, Product>();
             CreateMap<Product, ProductDTO>();
+
+            CreateMap<CollectionDTO, CollectionEntity>()
+                .ForMember(x => x.Details, x => x.MapFrom(x => x.Season));
+            CreateMap<CollectionDetailsDTO, CollectionDetails>()
+                .ForMember(x => x.Id, x => x.MapFrom(x => x.Code));
 
             CreateMap<Product, ProductGridDTO>()
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
@@ -47,7 +54,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ResponseDateTime, x => x.MapFrom(x => x.Data.CreatedTime))
                 .ForMember(x => x.ResponseCode, x => x.MapFrom(x => x.StatusCode));
 
-            CreateMap<Product, LogInfo>()
+            CreateMap<ErpEntity, LogInfo>()
                 .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
                 .ForMember(x => x.Object, x => x.MapFrom(x => x.Category));
             CreateMap<LogInfo, ErpMessage>();

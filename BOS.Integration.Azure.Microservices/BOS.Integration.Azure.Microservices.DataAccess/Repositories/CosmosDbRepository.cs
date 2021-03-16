@@ -23,7 +23,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             this._container = cosmosDbContainerFactory.GetContainer(ContainerName).Container;
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(string partitionKey = null)
+        public async Task<ICollection<T>> GetAllAsync(string partitionKey = null)
         {
             QueryRequestOptions requestOptions = null;
 

@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.Domain.DTOs;
+﻿using BOS.Integration.Azure.Microservices.Domain;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Extensions.Logging;
@@ -59,50 +60,47 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<string> PostSoapAsync(string url, string xmlBody, string soapAction, string userName = null, string password = null)
+        public async Task<HttpExecutionResult> PostSoapAsync(string url, string xmlBody, string soapAction, string userName = null, string password = null)
         {
-            try
+            var result = new HttpExecutionResult();
+
+            HttpMessageHandler handler = new HttpClientHandler()
             {
-                HttpMessageHandler handler = new HttpClientHandler()
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+
+            using (var httpClient = new HttpClient(handler))
+            {
+                httpClient.BaseAddress = new Uri(url);
+
+                var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
+
+                httpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
+
+                if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
                 {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
+                    httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{userName}:{password}")));
+                }
 
-                using (var httpClient = new HttpClient(handler))
+                HttpResponseMessage response = await httpClient.PostAsync(url, content);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    httpClient.BaseAddress = new Uri(url);
-
-                    var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
-
-                    httpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
-
-                    if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
+                    using (StreamReader stream = new StreamReader(response.Content.ReadAsStreamAsync().Result))
                     {
-                        httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes($"{userName}:{password}")));
-                    }
+                        result.Succeeded = true;
+                        result.Content = stream.ReadToEnd();
 
-                    HttpResponseMessage response = await httpClient.PostAsync(url, content);
-
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        using (StreamReader stream = new StreamReader(response.Content.ReadAsStreamAsync().Result))
-                        {
-                            return stream.ReadToEnd();
-                        }
-                    }
-                    else
-                    {
-                        string errorMessage = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
-                        this.logger.LogError(errorMessage);
-
-                        return errorMessage;
+                        return result;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
+                else
+                {
+                    result.Error = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
+                    this.logger.LogError(result.Error);
 
-                throw;
+                    return result;
+                }
             }
         }
 
