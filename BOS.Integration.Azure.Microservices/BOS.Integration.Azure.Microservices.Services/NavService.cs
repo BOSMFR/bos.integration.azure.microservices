@@ -28,8 +28,6 @@ namespace BOS.Integration.Azure.Microservices.Services
             try
             {
                 // Get sku key by eanNo
-                string path = Environment.CurrentDirectory;
-
                 string readSkuBody = GetXmlBody(eanNo);
 
                 if (string.IsNullOrEmpty(readSkuBody))
@@ -38,10 +36,16 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                string xmlResponse = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, readSkuBody, configuration.NavSettings.SoapAction, 
+                var getSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, readSkuBody, configuration.NavSettings.SoapAction, 
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
-                string key = this.GetKeyFromXml(xmlResponse);
+                if (!getSkuResult.Succeeded)
+                {
+                    actionResult.Error = getSkuResult.Error;
+                    return actionResult;
+                }
+
+                string key = this.GetKeyFromXml(getSkuResult.Content);
 
                 if (string.IsNullOrEmpty(key))
                 {
@@ -58,8 +62,14 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                string xmlUpdateResponse = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, updateSkuBody, configuration.NavSettings.SoapAction,
+                var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, updateSkuBody, configuration.NavSettings.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
+
+                if (!updateSkuResult.Succeeded)
+                {
+                    actionResult.Error = updateSkuResult.Error;
+                    return actionResult;
+                }
 
                 actionResult.Succeeded = true;
 

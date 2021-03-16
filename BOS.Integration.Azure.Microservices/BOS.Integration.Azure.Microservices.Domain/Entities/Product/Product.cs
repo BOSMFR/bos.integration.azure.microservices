@@ -1,13 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
-
-namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
+﻿namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
 {
-    public class Product : BaseEntity
+    public class Product : ErpEntity
     {
-        [JsonProperty(PropertyName = "category")]
-        public string Category { get; set; }
-
         public string Sku { get; set; }
 
         public string EanNo { get; set; }
@@ -35,12 +29,6 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Product
         public int? AzureOutboundStatusId { get; set; }
 
         public string AzureOutboundStatusText { get; set; }
-
-        public string ErpjobId { get; set; }
-
-        public string ErpDateTime { get; set; }
-
-        public DateTime ReceivedFromErp { get; set; }
 
         public Characteristic Colour { get; set; }
 

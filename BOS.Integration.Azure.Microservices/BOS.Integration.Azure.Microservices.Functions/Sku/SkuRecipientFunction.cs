@@ -50,7 +50,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 // Read file from blob storage
                 string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
 
-                // Get product objetc from the topic message and create or update it in the storage
+                // Get product object from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(fileContent);
 
                 string primeCargoIntegrationState = PrimeCargoProductHelper.GetPrimeCargoIntegrationState(productDTO.StartDatePrimeCargoExport);

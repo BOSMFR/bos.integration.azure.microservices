@@ -7,7 +7,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
     public interface IRepository<TEntity>
         where TEntity : BaseEntity
     {
-        Task<IEnumerable<TEntity>> GetAllAsync(string partitionKey = null);
+        Task<ICollection<TEntity>> GetAllAsync(string partitionKey = null);
         
         Task<TEntity> GetByIdAsync(string id, string partitionKey = null);
 

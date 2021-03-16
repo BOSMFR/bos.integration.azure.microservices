@@ -37,7 +37,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 if (result == null || !result.Succeeded)
                 {
-                    throw new Exception("Could not update the sku into Nav");
+                    throw new Exception(string.IsNullOrEmpty(result?.Error) ? "Could not update the sku into Nav" : result.Error);
                 }
             }
             catch (Exception ex)

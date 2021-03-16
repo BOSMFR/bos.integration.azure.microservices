@@ -34,6 +34,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IConfigurationManager, ConfigurationManager>();
             builder.Services.AddTransient<IHttpService, HttpService>();
             builder.Services.AddTransient<IProductService, ProductService>();
+            builder.Services.AddTransient<ICollectionService, CollectionService>();
             builder.Services.AddTransient<IValidationService, ValidationService>();
             builder.Services.AddTransient<IPrimeCargoService, PrimeCargoService>();
             builder.Services.AddTransient<IServiceBusService, ServiceBusService>();
@@ -51,6 +52,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                                           cosmosDbConfig.Containers);
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
             builder.Services.AddScoped<IErpMessageRepository, ErpMessageRepository>();
             builder.Services.AddScoped<ITimeLineRepository, TimeLineRepository>();
             builder.Services.AddScoped<IShopRepository, ShopRepository>();
