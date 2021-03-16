@@ -61,7 +61,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                                                         && (string.IsNullOrEmpty(productFilter.EanNo) || p.EanNo == productFilter.EanNo)
                                                         && (string.IsNullOrEmpty(productFilter.Sku) || p.Sku.Contains(productFilter.Sku));
 
-            var iterator = _container.GetItemLinqQueryable<Product>().Where(query).ToFeedIterator();
+            var iterator = _container.GetItemLinqQueryable<Product>(requestOptions: requestOptions).Where(query).ToFeedIterator();
 
             return (await iterator.ReadNextAsync()).ToList();
         }

@@ -26,7 +26,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             productFilter.FromDate ??= DateTime.MinValue;
             productFilter.ToDate ??= DateTime.MaxValue;
 
-            return await this.repository.GetByFilterAsync(productFilter);
+            return await this.repository.GetByFilterAsync(productFilter, NavObjectCategory.Sku);
         }
 
         public async Task<(Product, bool)> CreateOrUpdateProductAsync(ProductDTO productDTO, string primeCargoIntegrationState = null)
