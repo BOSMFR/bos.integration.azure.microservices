@@ -1,8 +1,8 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -121,9 +121,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             try
             {
-                string fileText = File.ReadAllText("NavXmlTemplates\\UpdateSkuBody.xml");
-
-                return string.Format(fileText, key, eanNo, productId);
+                return string.Format(XmlTemplate.UpdateSkuBody, key, eanNo, productId);
             }
             catch
             {
@@ -135,9 +133,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             try
             {
-                string fileText = File.ReadAllText("NavXmlTemplates\\ReadSkuBody.xml");
-
-                return string.Format(fileText, eanNo);
+                return string.Format(XmlTemplate.ReadSkuBody, eanNo);
             }
             catch
             {

@@ -17,17 +17,4 @@
     <ProjectReference Include="..\BOS.Integration.Azure.Microservices.Services.Abstraction\BOS.Integration.Azure.Microservices.Services.Abstraction.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="NavXmlTemplates\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="NavXmlTemplates\ReadSkuBody.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="NavXmlTemplates\UpdateSkuBody.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
