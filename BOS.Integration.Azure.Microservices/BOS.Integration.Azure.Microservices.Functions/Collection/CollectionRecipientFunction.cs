@@ -16,16 +16,19 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
     {
         private readonly ILogService logService;
         private readonly ICollectionService collectionService;
+        private readonly IPlytixService plytixService;
         private readonly IMapper mapper;
         private readonly IBlobService blobService;
 
         public CollectionRecipientFunction(
             ICollectionService collectionService,
+            IPlytixService plytixService,
             IMapper mapper,
             ILogService logService,
             IBlobService blobService)
         {
             this.collectionService = collectionService;
+            this.plytixService = plytixService;
             this.logService = logService;
             this.mapper = mapper;
             this.blobService = blobService;
@@ -55,10 +58,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
                 await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
-
                 // Write time lines to database
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+
+                // Update plytix product attribute
+                await this.plytixService.UpdateCollectionProductAttributeAsync(collection);
             }
             catch (Exception ex)
             {

@@ -40,7 +40,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newCollection.Category = collection.Category;
                 newCollection.ReceivedFromErp = collection.ReceivedFromErp;
 
-                await repository.UpdateAsync(newCollection.Id, newCollection, newCollection.Category);
+                await repository.UpdateAsync(newCollection, newCollection.Category);
             }
 
             return newCollection;

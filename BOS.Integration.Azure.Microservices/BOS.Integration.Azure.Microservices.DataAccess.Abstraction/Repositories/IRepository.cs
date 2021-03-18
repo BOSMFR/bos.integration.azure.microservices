@@ -15,7 +15,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
 
         Task AddRangeAsync(ICollection<TEntity> items, string partitionKey = null);
 
-        Task UpdateAsync(string id, TEntity item, string partitionKey = null);
+        Task UpdateAsync(TEntity item, string partitionKey = null);
 
         Task UpdateRangeAsync(ICollection<TEntity> items, string partitionKey = null);
 

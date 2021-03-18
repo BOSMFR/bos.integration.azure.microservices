@@ -141,5 +141,30 @@ namespace BOS.Integration.Azure.Microservices.Services
                 }
             }
         }
+
+        public async Task<V> PatchAsync<T, V>(string url, T dataParams,  string token = null)
+            where V : HttpResponse, new()
+        {
+            using (var client = new HttpClient())
+            {
+                if (!string.IsNullOrEmpty(token))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                }
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var bodyContent = JsonConvert.SerializeObject(dataParams);
+                var result = await client.PatchAsync(url, new StringContent(bodyContent, Encoding.UTF8, "application/json"));
+
+                if (result.StatusCode != HttpStatusCode.OK)
+                {
+                    string errorMessage = $"Failed to patch by the URL: {url}" + Environment.NewLine + $"Body: {bodyContent}";
+                    this.logger.LogError(errorMessage);
+                }
+
+                return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString() };
+            }
+        }
     }
 }
