@@ -4,7 +4,6 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,11 +22,21 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         {
         }
 
-        public async Task<List<ProductAttribute>> GetAllByLabelAsync(string label)
+        public async Task<ProductAttribute> GetByLabelAsync(string label, string partitionKey = null)
         {
-            var iterator = _container.GetItemLinqQueryable<ProductAttribute>().Where(x => x.Label == label).ToFeedIterator();
+            QueryRequestOptions requestOptions = null;
 
-            return (await iterator.ReadNextAsync()).ToList();
+            if (!string.IsNullOrEmpty(partitionKey))
+            {
+                requestOptions = new QueryRequestOptions
+                {
+                    PartitionKey = this.ResolvePartitionKey(partitionKey)
+                };
+            }
+
+            var iterator = _container.GetItemLinqQueryable<ProductAttribute>(requestOptions: requestOptions).Where(x => x.Label == label).ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).FirstOrDefault();
         }
     }
 }

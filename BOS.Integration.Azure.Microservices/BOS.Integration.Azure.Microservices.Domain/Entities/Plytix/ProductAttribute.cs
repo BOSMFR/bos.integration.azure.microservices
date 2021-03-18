@@ -5,6 +5,9 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Plytix
 {
     public class ProductAttribute : BaseEntity
     {
+        [JsonProperty(PropertyName = "plytixInstanceId")]
+        public string PlytixInstanceId { get; set; }
+
         [JsonProperty(PropertyName = "filter_type")]
         public string FilterType { get; set; }
 

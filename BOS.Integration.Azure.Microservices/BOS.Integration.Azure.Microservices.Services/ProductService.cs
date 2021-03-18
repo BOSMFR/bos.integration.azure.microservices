@@ -55,7 +55,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newProduct.PrimeCargoProductId = product.PrimeCargoProductId;
                 newProduct.ReceivedFromErp = product.ReceivedFromErp;
 
-                await repository.UpdateAsync(newProduct.Id, newProduct, newProduct.Category);
+                await repository.UpdateAsync(newProduct, newProduct.Category);
             }
 
             return (newProduct, isNewObjectCreated);
@@ -83,7 +83,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             product.PrimeCargoIntegration.Delivered = product.PrimeCargoIntegration.Delivered || primeCargoResponse.Success;
             product.PrimeCargoIntegration.State = primeCargoResponse.Success ? PrimeCargoIntegrationState.DeliveredSuccessfully : PrimeCargoIntegrationState.Error;
 
-            await repository.UpdateAsync(product.Id, product, product.Category);
+            await repository.UpdateAsync(product, product.Category);
 
             return true;
         }

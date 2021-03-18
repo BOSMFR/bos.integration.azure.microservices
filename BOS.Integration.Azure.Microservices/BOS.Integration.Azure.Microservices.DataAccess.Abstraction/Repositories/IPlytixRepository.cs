@@ -1,10 +1,11 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories
 {
-    public interface IProductAttributeRepository : IRepository<ProductAttribute>
+    public interface IPlytixRepository : IRepository<Plytix>
     {
-        Task<ProductAttribute> GetByLabelAsync(string label, string partitionKey = null);
+        Task<List<PlytixInstance>> GetActiveInstancesAsync();
     }
 }
