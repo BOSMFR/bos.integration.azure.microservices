@@ -16,5 +16,9 @@
         // Collection
         public const string CollectionUpdatedSuccessfully = "Collection successfully updated into Plytix";
         public const string CollectionUpdateError = "Error during updating Collection into Plytix";
+
+        // Delivery period
+        public const string DeliveryPeriodUpdatedSuccessfully = "Delivery period successfully updated into Plytix";
+        public const string DeliveryPeriodUpdateError = "Error during updating Delivery period into Plytix";
     }
 }

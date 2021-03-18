@@ -26,9 +26,9 @@ namespace BOS.Integration.Azure.Microservices.Services
             return (await repository.GetAllAsync(NavObjectCategory.Collection))?.FirstOrDefault();
         }
 
-        public async Task<CollectionEntity> CreateOrUpdateCollectionAsync(CollectionDTO productDTO)
+        public async Task<CollectionEntity> CreateOrUpdateCollectionAsync(CollectionDTO collectionDTO)
         {
-            var newCollection = this.mapper.Map<CollectionEntity>(productDTO);
+            var newCollection = this.mapper.Map<CollectionEntity>(collectionDTO);
 
             var collection = (await repository.GetAllAsync(NavObjectCategory.Collection))?.FirstOrDefault();
 
