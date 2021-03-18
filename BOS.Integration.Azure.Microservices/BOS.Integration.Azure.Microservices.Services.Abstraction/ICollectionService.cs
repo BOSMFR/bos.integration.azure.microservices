@@ -8,6 +8,6 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<CollectionEntity> GetCollectionAsync();
 
-        Task<CollectionEntity> CreateOrUpdateCollectionAsync(CollectionDTO productDTO);
+        Task<CollectionEntity> CreateOrUpdateCollectionAsync(CollectionDTO collectionDTO);
     }
 }
