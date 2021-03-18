@@ -43,6 +43,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
                 log.LogInformation("CollectionRecipient function recieved the message from the topic");
 
                 var timeLines = new List<TimeLineDTO>();
+                var erpMessages = new List<string>();
 
                 // Read file from blob storage
                 string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
@@ -52,17 +53,28 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
 
                 var collection = await this.collectionService.CreateOrUpdateCollectionAsync(collectionDTO);
 
-                //Create an erp message and time line
                 var erpInfo = this.mapper.Map<LogInfo>(collection);
 
-                await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
+                erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
-                // Write time lines to database
-                await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
-
                 // Update plytix product attribute
-                await this.plytixService.UpdateCollectionProductAttributeAsync(collection);
+                var result = await this.plytixService.UpdateCollectionProductAttributeAsync(collection);
+
+                if (result.Succeeded)
+                {
+                    erpMessages.Add(ErpMessageStatus.CollectionUpdatedSuccessfully);
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.CollectionUpdatedSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                }
+                else
+                {
+                    erpMessages.Add(ErpMessageStatus.CollectionUpdateError);
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.CollectionUpdateError + result.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                }
+
+                // Write time lines to database
+                await this.logService.AddErpMessagesAsync(erpInfo, erpMessages);
+                await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
             }
             catch (Exception ex)
             {
