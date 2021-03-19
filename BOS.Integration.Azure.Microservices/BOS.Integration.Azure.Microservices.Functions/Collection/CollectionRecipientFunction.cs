@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions.Collection
@@ -59,7 +60,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
                 // Update plytix product attribute
-                var result = await this.plytixService.UpdateCollectionProductAttributeAsync(collection);
+                var attributeOptions = collection.Details.Where(x => x.ShowExternal).Select(x => x.Id);
+                var result = await this.plytixService.UpdateProductAttributeOptionsAsync(collection.Category, attributeOptions);
 
                 if (result.Succeeded)
                 {

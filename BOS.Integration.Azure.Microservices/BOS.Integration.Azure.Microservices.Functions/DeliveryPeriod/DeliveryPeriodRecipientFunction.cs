@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
@@ -16,16 +17,19 @@ namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
     {
         private readonly ILogService logService;
         private readonly IDeliveryPeriodService deliveryPeriodService;
+        private readonly IPlytixService plytixService;
         private readonly IMapper mapper;
         private readonly IBlobService blobService;
 
         public DeliveryPeriodRecipientFunction(
             IDeliveryPeriodService deliveryPeriodService,
+            IPlytixService plytixService,
             IMapper mapper,
             ILogService logService,
             IBlobService blobService)
         {
             this.deliveryPeriodService = deliveryPeriodService;
+            this.plytixService = plytixService;
             this.logService = logService;
             this.mapper = mapper;
             this.blobService = blobService;
@@ -54,6 +58,21 @@ namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+
+                // Update plytix product attribute
+                var attributeOptions = deliveryPeriod.Details.Where(x => x.Active).Select(x => x.Id);
+                var result = await this.plytixService.UpdateProductAttributeOptionsAsync(deliveryPeriod.Category, attributeOptions);
+
+                if (result.Succeeded)
+                {
+                    erpMessages.Add(ErpMessageStatus.DeliveryPeriodUpdatedSuccessfully);
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveryPeriodUpdatedSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                }
+                else
+                {
+                    erpMessages.Add(ErpMessageStatus.DeliveryPeriodUpdateError);
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveryPeriodUpdateError + result.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                }
 
                 // Write time lines to database
                 await this.logService.AddErpMessagesAsync(erpInfo, erpMessages);

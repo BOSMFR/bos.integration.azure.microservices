@@ -2,7 +2,6 @@
 using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Plytix;
-using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
@@ -107,7 +106,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<ActionExecutionResult> UpdateCollectionProductAttributeAsync(CollectionEntity collection)
+        public async Task<ActionExecutionResult> UpdateProductAttributeOptionsAsync(string attributeLabel, IEnumerable<string> newOptions)
         {
             var actionResult = new ActionExecutionResult();
 
@@ -145,17 +144,17 @@ namespace BOS.Integration.Azure.Microservices.Services
                     }
 
                     // Get collection product attribute from the storage
-                    var productAttribute = await productAttributeRepository.GetByLabelAsync(collection.Category, plytix.Id.ToString());
+                    var productAttribute = await productAttributeRepository.GetByLabelAsync(attributeLabel, plytix.Id.ToString());
 
                     if (productAttribute == null)
                     {
                         actionResult.Entity = productAttribute;
-                        actionResult.Error = $"Could not get product attribute with label: {collection.Category} for instance {plytix.Name}";
+                        actionResult.Error = $"Could not get product attribute with label: {attributeLabel} for instance {plytix.Name}";
 
                         return actionResult;
                     }
 
-                    productAttribute.Options = collection.Details.Where(x => x.ShowExternal).Select(x => x.Id).ToList();
+                    productAttribute.Options = newOptions.ToList();
 
                     // Update collection product attribute in plytix
                     string updateUrl = plytix.ServerUrl + "attributes/product/" + productAttribute.Id;
@@ -169,7 +168,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                     if (updateResponse.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
                     {
-                        actionResult.Error = $"Could not update product attribute for instance {plytix.Name}";
+                        actionResult.Error = $"Could not update product attribute with label: {attributeLabel} for instance {plytix.Name}";
 
                         return actionResult;
                     }

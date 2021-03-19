@@ -1,5 +1,5 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
-using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services.Abstraction
@@ -8,6 +8,6 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<ActionExecutionResult> SynchronizeProductAttributesAsync();
 
-        Task<ActionExecutionResult> UpdateCollectionProductAttributeAsync(CollectionEntity collection);
+        Task<ActionExecutionResult> UpdateProductAttributeOptionsAsync(string attributeLabel, IEnumerable<string> newOptions);
     }
 }
