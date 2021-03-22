@@ -52,7 +52,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 {
                     string fileName = userProperties["fileName"].ToString();
 
-                    category = fileName.Split("_").First();
+                    category = fileName.Split("_").First().ToLower();
                 }
             }
 

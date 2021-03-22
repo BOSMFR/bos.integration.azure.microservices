@@ -4,9 +4,6 @@
     {
         // General
         public const string ErpMessageReceived = "ERP message Received";
-        public const string ErpUpdatedSuccessfully = "ERP updated Successfully";
-        public const string TimeOutUpdatingErp = "TimeOut updating ERP";
-        public const string ErrorUpdatingERP = "Error updating ERP - ";
         public const string DataValidationFailed = "Data validation failed";
 
         // Sku
@@ -17,6 +14,9 @@
         public const string DeliveredSuccessfullyToPrimeCargo = "Delivered Successfully to Prime Cargo Product API";
         public const string PrimeCargoRequestTimeOut = "TimeOut sending request to Prime Cargo Product API";
         public const string PrimeCargoRequestError = "Error sending request to Prime Cargo Product API - ";
+        public const string ErpUpdatedSuccessfully = "ERP updated Successfully";
+        public const string TimeOutUpdatingErp = "TimeOut updating ERP";
+        public const string ErrorUpdatingERP = "Error updating ERP - ";
 
         // Collection
         public const string CollectionUpdatedSuccessfully = "Collection successfully updated into Plytix";

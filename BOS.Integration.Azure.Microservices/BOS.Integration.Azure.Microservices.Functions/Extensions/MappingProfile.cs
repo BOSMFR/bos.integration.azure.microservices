@@ -2,15 +2,18 @@
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Collection;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.DeliveryPeriod;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Noos;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
 using BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Noos;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 
 using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod.DeliveryPeriod;
+using NoosEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Noos.Noos;
 
 namespace BOS.Integration.Azure.Microservices.Functions.Extensions
 {
@@ -30,6 +33,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.Details, x => x.MapFrom(x => x.DeliveryWindow));
             CreateMap<DeliveryPeriodDetailsDTO, DeliveryPeriodDetails>()
                 .ForMember(x => x.Id, x => x.MapFrom(x => x.Code));
+
+            CreateMap<NoosDTO, NoosEntity>()
+                .ForMember(x => x.StyleNo, x => x.MapFrom(x => x.ItemNo))
+                .ForMember(x => x.StyleDescription, x => x.MapFrom(x => x.ItemDescription));
+            CreateMap<NoosDetailsDTO, NoosDetails>()
+                .ForMember(x => x.ColorId, x => x.MapFrom(x => x.ColorCode));
 
             CreateMap<Product, ProductGridDTO>()
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
