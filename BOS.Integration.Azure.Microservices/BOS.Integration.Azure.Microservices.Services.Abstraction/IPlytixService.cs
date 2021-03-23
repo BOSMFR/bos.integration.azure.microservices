@@ -8,6 +8,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<ActionExecutionResult> SynchronizeProductAttributesAsync();
 
+        Task<ActionExecutionResult> SynchronizeAssetCategoriesAsync();
+
         Task<ActionExecutionResult> UpdateProductAttributeOptionsAsync(string attributeLabel, IEnumerable<string> newOptions);
     }
 }

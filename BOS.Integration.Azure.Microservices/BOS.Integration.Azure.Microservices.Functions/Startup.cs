@@ -61,6 +61,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddScoped<ITimeLineRepository, TimeLineRepository>();
             builder.Services.AddScoped<IShopRepository, ShopRepository>();
             builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
+            builder.Services.AddScoped<IAssetCategoryRepository, AssetCategoryRepository>();
             builder.Services.AddScoped<IPlytixRepository, PlytixRepository>();
 
             this.ConfigureAutoMapper(builder.Services);
