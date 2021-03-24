@@ -1,4 +1,5 @@
 using BOS.Integration.Azure.Microservices.Domain;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
@@ -12,10 +13,12 @@ namespace BOS.Integration.Azure.Microservices.Functions
     public class UpdateSkuIntoNavFunction
     {
         private readonly INavService navService;
+        private readonly ILogService logService;
 
-        public UpdateSkuIntoNavFunction(INavService navService)
+        public UpdateSkuIntoNavFunction(INavService navService, ILogService logService)
         {
             this.navService = navService;
+            this.logService = logService;
         }
 
         [FunctionName("UpdateSkuIntoNavFunction")]
@@ -37,8 +40,13 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 if (result == null || !result.Succeeded)
                 {
-                    throw new Exception(string.IsNullOrEmpty(result?.Error) ? "Could not update the sku into Nav" : result.Error);
+                    string errorMessage = string.IsNullOrEmpty(result?.Error) ? "Could not update the sku into Nav" : result.Error;
+
+                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingERP + errorMessage, TimeLineStatus.Error);
+                    throw new Exception(errorMessage);
                 }
+
+                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully);
             }
             catch (Exception ex)
             {
