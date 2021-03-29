@@ -24,7 +24,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         public async Task<List<Product>> GetProductByFilterAsync(ProductFilterDTO productFilter)
         {
             productFilter.FromDate ??= DateTime.MinValue;
-            productFilter.ToDate ??= DateTime.MaxValue;
+            productFilter.ToDate = productFilter.ToDate.HasValue ? productFilter.ToDate.Value.AddDays(1) : DateTime.MaxValue;
 
             return await this.repository.GetByFilterAsync(productFilter, NavObjectCategory.Sku);
         }
