@@ -56,7 +56,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                 };
             }
 
-            Expression<Func<Product, bool>> query = p => (p.ReceivedFromErp >= productFilter.FromDate && p.ReceivedFromErp <= productFilter.ToDate)
+            Expression<Func<Product, bool>> query = p => (p.ReceivedFromErp >= productFilter.FromDate && p.ReceivedFromErp < productFilter.ToDate)
                                                         && (!productFilter.ProductId.HasValue || p.PrimeCargoProductId == productFilter.ProductId)
                                                         && (string.IsNullOrEmpty(productFilter.EanNo) || p.EanNo == productFilter.EanNo)
                                                         && (string.IsNullOrEmpty(productFilter.Sku) || p.Sku.Contains(productFilter.Sku));
