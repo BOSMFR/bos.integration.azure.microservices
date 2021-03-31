@@ -54,29 +54,33 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
 
                 var collection = await this.collectionService.CreateOrUpdateCollectionAsync(collectionDTO);
 
+                // Add erp messages and time lines
                 var erpInfo = this.mapper.Map<LogInfo>(collection);
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
-                // Update plytix product attribute
-                var attributeOptions = collection.Details.Where(x => x.ShowExternal).Select(x => x.Id);
-                var result = await this.plytixService.UpdateProductAttributeOptionsAsync(collection.Category, attributeOptions);
+                // Update plytix options
+                var options = collection.Details.Where(x => x.ShowExternal).Select(x => x.Id);
+                var result = await this.plytixService.UpdatePlytixOptionsAsync(collection.Category, options);
 
-                if (result.Succeeded)
+                erpMessages.Add(result.Succeeded ? ErpMessageStatus.CollectionUpdatedSuccessfully : ErpMessageStatus.CollectionUpdateError);
+
+                var updatePlytixTimeLines = result.Entity as List<TimeLineDTO>;
+
+                if (updatePlytixTimeLines != null)
                 {
-                    erpMessages.Add(ErpMessageStatus.CollectionUpdatedSuccessfully);
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.CollectionUpdatedSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
-                }
-                else
-                {
-                    erpMessages.Add(ErpMessageStatus.CollectionUpdateError);
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.CollectionUpdateError + result.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.AddRange(updatePlytixTimeLines);
                 }
 
-                // Write time lines to database
+                // Write erp messages and time lines to the storage
                 await this.logService.AddErpMessagesAsync(erpInfo, erpMessages);
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+
+                if (!result.Succeeded)
+                {
+                    throw new Exception(result.Error);
+                }
             }
             catch (Exception ex)
             {

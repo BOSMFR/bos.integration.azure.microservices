@@ -34,7 +34,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                 };
             }
 
-            var iterator = _container.GetItemLinqQueryable<ProductAttribute>(requestOptions: requestOptions).Where(x => x.Label == label).ToFeedIterator();
+            var iterator = _container.GetItemLinqQueryable<ProductAttribute>(requestOptions: requestOptions).Where(x => x.Label.ToLower() == label.ToLower()).ToFeedIterator();
 
             return (await iterator.ReadNextAsync()).FirstOrDefault();
         }

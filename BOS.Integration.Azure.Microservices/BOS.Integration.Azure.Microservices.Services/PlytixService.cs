@@ -1,13 +1,17 @@
 ﻿using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Plytix;
+using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,6 +19,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 {
     public class PlytixService : IPlytixService
     {
+        private const int DefaultPageSize = 100;
         private List<string> ProductAttibuteFilterAttributes { get; }
         private List<string> AssetCategoryFilterAttributes { get; }
 
@@ -38,12 +43,12 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.plytixRepository = plytixRepository;
 
             this.ProductAttibuteFilterAttributes = new List<string> { "name", "label", "attributes", "groups", "type_class", "options" };
-            this.AssetCategoryFilterAttributes = new List<string> { "name", "n_children" };
+            this.AssetCategoryFilterAttributes = new List<string> { "name", "n_children", "path", "parents_ids", "order" };
         }
 
-        public async Task<ActionExecutionResult> SynchronizeProductAttributesAsync()
+        public async Task<PlytixSyncResultDTO> SynchronizePlytixOptionsAsync(IEnumerable<string> collectionOptions, IEnumerable<string> deliveryPeriodOptions)
         {
-            var actionResult = new ActionExecutionResult();
+            var actionResult = new PlytixSyncResultDTO();
 
             try
             {
@@ -51,37 +56,111 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                 if (!response.Succeeded)
                 {
-                    actionResult.Error = response.Error;
+                    actionResult.GeneralResult.Error = response.Error;
                     return actionResult;
                 }
 
                 var plytixData = response.Entity as List<PlytixInstanceDTO>;
 
-                foreach (var data in plytixData)
+                // Sync Collection options
+                actionResult.UpdateCollectionResult = await this.UpdatePlytixOptionsAsync(NavObjectCategory.Collection, collectionOptions, plytixData);
+
+                // Sync Delivery period options
+                actionResult.UpdateDeliveryPeriodResult = await this.UpdatePlytixOptionsAsync(NavObjectCategory.DeliveryPeriod, deliveryPeriodOptions, plytixData);
+
+                actionResult.GeneralResult = new ActionExecutionResult() { Succeeded = actionResult.UpdateCollectionResult.Succeeded && actionResult.UpdateDeliveryPeriodResult.Succeeded };
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.GeneralResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        public async Task<ActionExecutionResult> UpdatePlytixOptionsAsync(string label, IEnumerable<string> options, List<PlytixInstanceDTO> plytixInstances = null)
+        {
+            var actionResult = new ActionExecutionResult();
+            var timeLines = new List<TimeLineDTO>();
+
+            try
+            {
+                if (plytixInstances == null)
                 {
-                    // Get data from API
-                    string url = data.Plytix.ServerUrl + "attributes/product/search";
+                    var response = await GetPlytixInstancesWithTokensAsync();
 
-                    var productAttributeSearchRequestBody = new PlytixSearchRequestDTO { Attributes = this.ProductAttibuteFilterAttributes };
-
-                    var content = await this.httpService.PostAsync<PlytixSearchRequestDTO, PlytixSearchResponseDTO<ProductAttribute>>(url, productAttributeSearchRequestBody, null, data.Token);
-
-                    if (content?.Data == null || content.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
+                    if (!response.Succeeded)
                     {
-                        actionResult.Entity = content;
-                        actionResult.Error = $"Could not get product attributes for instance {data.Plytix.Name}";
-
+                        actionResult.Error = response.Error;
                         return actionResult;
                     }
 
-                    // Write data to database
-                    var productAttributes = content.Data.ToList();
-
-                    productAttributes.ForEach(x => x.PlytixInstanceId = data.Plytix.Id.ToString());
-
-                    await productAttributeRepository.UpdateRangeAsync(productAttributes, data.Plytix.Id.ToString());
+                    plytixInstances = response.Entity as List<PlytixInstanceDTO>;
                 }                
 
+                foreach (var plytixInstance in plytixInstances)
+                {
+                    // Synchronize product attributes in the storage with Plytix
+                    var synchronizeProductAttributesResponse = await SynchronizeProductAttributesAsync(plytixInstance);
+
+                    if (!synchronizeProductAttributesResponse.Succeeded)
+                    {
+                        actionResult.Error = synchronizeProductAttributesResponse.Error;
+                        return actionResult;
+                    }
+
+                    // Update product attributes in the storage and Plytix
+                    var updateProductAttributeResponse = await UpdateProductAttributeAsync(plytixInstance, label, options);
+
+                    if (updateProductAttributeResponse.Succeeded)
+                    {
+                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodPaUpdatedSuccessfully;
+                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                    }
+                    else
+                    {
+                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdateError : TimeLineDescription.DeliveryPeriodPaUpdateError;
+                        description += updateProductAttributeResponse.Error;
+                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    }
+
+                    // Synchronize asset categories in the storage with Plytix
+                    var synchronizeAssetCategoriesResponse = await this.SynchronizeAssetCategoriesAsync(plytixInstance);
+
+                    if (!synchronizeAssetCategoriesResponse.Succeeded)
+                    {
+                        actionResult.Error = synchronizeAssetCategoriesResponse.Error;
+                        actionResult.Entity = timeLines;
+                        return actionResult;
+                    }
+
+                    // Get not existing in Plytix asset categories
+                    var assetCategoriesInPlytix = synchronizeAssetCategoriesResponse.Entity as List<AssetCategory>;
+
+                    var newOptions = assetCategoriesInPlytix != null ? options.Except(assetCategoriesInPlytix.Select(x => x.Name)) : options;
+
+                    // Update asset categories in Plytix
+                    var updateAssetCategoryResponse = await UpdateAssetCategoryAsync(plytixInstance, label, newOptions);
+
+                    if (updateAssetCategoryResponse.Succeeded)
+                    {
+                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodAcUpdatedSuccessfully;
+                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                    }
+                    else
+                    {
+                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdateError : TimeLineDescription.DeliveryPeriodAcUpdateError;
+                        description += updateAssetCategoryResponse.Error;
+                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                        actionResult.Error = updateAssetCategoryResponse.Error;
+                        actionResult.Entity = timeLines;
+                        return actionResult;
+                    }
+                }
+
+                actionResult.Entity = timeLines;
                 actionResult.Succeeded = true;
 
                 return actionResult;
@@ -93,111 +172,219 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<ActionExecutionResult> SynchronizeAssetCategoriesAsync()
+        private async Task<ActionExecutionResult> UpdateProductAttributeAsync(PlytixInstanceDTO plytixInstance, string label, IEnumerable<string> options)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            if (options == null || !options.Any())
+            {
+                actionResult.Succeeded = true;
+                return actionResult;
+            }
+
+            try
+            {
+                // Get product attribute from the storage
+                var productAttribute = await productAttributeRepository.GetByLabelAsync(label, plytixInstance.Plytix.Id.ToString());
+
+                if (productAttribute == null)
+                {
+                    actionResult.Error = $"Could not get product attribute with label: {label} for instance {plytixInstance.Plytix.Name}";
+
+                    return actionResult;
+                }
+
+                productAttribute.Options = options.ToList();
+
+                // Update product attribute in plytix
+                string updateUrl = plytixInstance.Plytix.ServerUrl + "attributes/product/" + productAttribute.Id;
+
+                var updateRequestBody = new ProductAttributeUpdateRequestDTO()
+                {
+                    Options = productAttribute.Options
+                };
+
+                var updateResponse = await this.httpService.PatchAsync<ProductAttributeUpdateRequestDTO, HttpResponse>(updateUrl, updateRequestBody, plytixInstance.Token);
+
+                if (updateResponse.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
+                {
+                    actionResult.Error = $"Could not update product attribute with label: {label} for instance {plytixInstance.Plytix.Name}";
+
+                    return actionResult;
+                }
+
+                // Update product attribute in the storage
+                await productAttributeRepository.UpdateAsync(productAttribute, productAttribute.PlytixInstanceId);
+
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }            
+        }
+
+        private async Task<ActionExecutionResult> UpdateAssetCategoryAsync(PlytixInstanceDTO plytixInstance, string label, IEnumerable<string> options)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            string assetCategoryName = label == NavObjectCategory.Collection ? AssetCategoryName.Collection : AssetCategoryName.DeliveryPeriod;
+
+            if (options == null || !options.Any())
+            {
+                actionResult.Succeeded = true;
+                return actionResult;
+            }
+
+            try
+            {
+                // Get asset category from the storage
+                var assetCategory = await assetCategoryRepository.GetByNameAsync(assetCategoryName, plytixInstance.Plytix.Id.ToString());
+
+                if (assetCategory == null)
+                {
+                    actionResult.Error = $"Could not get asset category with name: {assetCategoryName} for instance {plytixInstance.Plytix.Name}";
+
+                    return actionResult;
+                }
+
+                // Update asset category in plytix
+                string updateUrl = plytixInstance.Plytix.ServerUrl + "categories/file/" + assetCategory.Id;
+                var newAssetCategories = new List<AssetCategory>();
+
+                foreach (var option in options)
+                {
+                    var requestBody = new AssetCategoryUpdateRequestDTO() { Name = option };
+
+                    var updateResponse = await this.httpService.PostAsync<AssetCategoryUpdateRequestDTO, PlytixDataResponseDTO<AssetCategory>>(updateUrl, requestBody, null, plytixInstance.Token);
+
+                    if (string.IsNullOrEmpty(updateResponse?.StatusCode) || updateResponse.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
+                    {
+                        actionResult.Error = $"Could not update asset category with name: {assetCategoryName} for instance {plytixInstance.Plytix.Name}";
+
+                        return actionResult;
+                    }
+
+                    var assetCategories = updateResponse.Data?.ToList();
+
+                    if (assetCategories?.Count > 0)
+                    {
+                        newAssetCategories.AddRange(assetCategories);
+                    }
+                }
+
+                // Update asset categories in the storage
+                newAssetCategories.ForEach(x => x.PlytixInstanceId = plytixInstance.Plytix.Id.ToString());
+
+                await assetCategoryRepository.UpdateRangeAsync(newAssetCategories, plytixInstance.Plytix.Id.ToString());
+
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        private async Task<ActionExecutionResult> SynchronizeProductAttributesAsync(PlytixInstanceDTO plytixInstance)
         {
             var actionResult = new ActionExecutionResult();
 
             try
             {
-                var response = await GetPlytixInstancesWithTokensAsync();
+                // Get data from API
+                string url = plytixInstance.Plytix.ServerUrl + "attributes/product/search";
 
-                if (!response.Succeeded)
+                var searchRequestBody = new PlytixSearchRequestDTO { Attributes = this.ProductAttibuteFilterAttributes, Pagination = new PaginationDTO { PageSize = DefaultPageSize } };
+
+                var productAttributes = new List<ProductAttribute>();
+                int pageNumber = 1;
+                int totalRecordsCount;
+
+                do
                 {
-                    actionResult.Error = response.Error;
-                    return actionResult;
-                }
+                    searchRequestBody.Pagination.Page = pageNumber;
 
-                var plytixData = response.Entity as List<PlytixInstanceDTO>;
-
-                foreach (var data in plytixData)
-                {
-                    // Get data from API
-                    string url = data.Plytix.ServerUrl + "categories/file/search";
-
-                    var productAttributeSearchRequestBody = new PlytixSearchRequestDTO { Attributes = this.AssetCategoryFilterAttributes };
-
-                    var content = await this.httpService.PostAsync<PlytixSearchRequestDTO, PlytixSearchResponseDTO<AssetCategory>>(url, productAttributeSearchRequestBody, null, data.Token);
+                    var content = await this.httpService.PostAsync<PlytixSearchRequestDTO, PlytixSearchResponseDTO<ProductAttribute>>(url, searchRequestBody, null, plytixInstance.Token);
 
                     if (content?.Data == null || content.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
                     {
                         actionResult.Entity = content;
-                        actionResult.Error = $"Could not get asset categories for instance {data.Plytix.Name}";
+                        actionResult.Error = $"Could not get product attributes for instance {plytixInstance.Plytix.Name}";
 
                         return actionResult;
                     }
 
-                    // Write data to database
-                    var assetCategories = content.Data.ToList();
+                    productAttributes.AddRange(content.Data.ToList());
 
-                    assetCategories.ForEach(x => x.PlytixInstanceId = data.Plytix.Id.ToString());
+                    totalRecordsCount = content.Pagination.TotalCount;
 
-                    await assetCategoryRepository.UpdateRangeAsync(assetCategories, data.Plytix.Id.ToString());
-                }
+                } while (totalRecordsCount / pageNumber++ > DefaultPageSize); // Check if there are more pages
+
+                // Write data to the database
+                productAttributes.ForEach(x => x.PlytixInstanceId = plytixInstance.Plytix.Id.ToString());
+
+                await productAttributeRepository.UpdateRangeAsync(productAttributes, plytixInstance.Plytix.Id.ToString());
 
                 actionResult.Succeeded = true;
 
                 return actionResult;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 actionResult.Error = ex.Message;
                 return actionResult;
             }
         }
 
-        public async Task<ActionExecutionResult> UpdateProductAttributeOptionsAsync(string attributeLabel, IEnumerable<string> newOptions)
+        private async Task<ActionExecutionResult> SynchronizeAssetCategoriesAsync(PlytixInstanceDTO plytixInstance)
         {
             var actionResult = new ActionExecutionResult();
 
             try
             {
-                var response = await GetPlytixInstancesWithTokensAsync();
+                // Get data from API
+                string url = plytixInstance.Plytix.ServerUrl + "categories/file/search";
 
-                if (!response.Succeeded)
+                var searchRequestBody = new PlytixSearchRequestDTO { Attributes = this.AssetCategoryFilterAttributes, Pagination = new PaginationDTO { PageSize = DefaultPageSize } };
+
+                var assetCategories = new List<AssetCategory>();
+                int pageNumber = 1;
+                int totalRecordsCount;
+
+                do
                 {
-                    actionResult.Error = response.Error;
-                    return actionResult;
-                }
+                    searchRequestBody.Pagination.Page = pageNumber;
 
-                var plytixData = response.Entity as List<PlytixInstanceDTO>;
+                    var content = await this.httpService.PostAsync<PlytixSearchRequestDTO, PlytixSearchResponseDTO<AssetCategory>>(url, searchRequestBody, null, plytixInstance.Token);
 
-                foreach (var data in plytixData)
-                {
-                    // Get collection product attribute from the storage
-                    var productAttribute = await productAttributeRepository.GetByLabelAsync(attributeLabel, data.Plytix.Id.ToString());
-
-                    if (productAttribute == null)
+                    if (content?.Data == null || content.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
                     {
-                        actionResult.Entity = productAttribute;
-                        actionResult.Error = $"Could not get product attribute with label: {attributeLabel} for instance {data.Plytix.Name}";
+                        actionResult.Entity = content;
+                        actionResult.Error = $"Could not get asset categories for instance {plytixInstance.Plytix.Name}";
 
                         return actionResult;
                     }
 
-                    productAttribute.Options = newOptions.ToList();
+                    assetCategories.AddRange(content.Data.ToList());
 
-                    // Update collection product attribute in plytix
-                    string updateUrl = data.Plytix.ServerUrl + "attributes/product/" + productAttribute.Id;
+                    totalRecordsCount = content.Pagination.TotalCount;
 
-                    var updateRequestBody = new ProductAttributeUpdateRequestDTO()
-                    {
-                        Options = productAttribute.Options
-                    };
+                } while (totalRecordsCount / pageNumber++ > DefaultPageSize); // Check if there are more pages
 
-                    var updateResponse = await this.httpService.PatchAsync<ProductAttributeUpdateRequestDTO, ProductAttributeUpdateResponseDTO>(updateUrl, updateRequestBody, data.Token);
+                // Write data to the database
+                assetCategories.ForEach(x => x.PlytixInstanceId = plytixInstance.Plytix.Id.ToString());
 
-                    if (updateResponse.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
-                    {
-                        actionResult.Error = $"Could not update product attribute with label: {attributeLabel} for instance {data.Plytix.Name}";
-
-                        return actionResult;
-                    }
-
-                    // Update product attribute in the storage
-                    await productAttributeRepository.UpdateAsync(productAttribute, productAttribute.PlytixInstanceId);
-                }
+                await assetCategoryRepository.UpdateRangeAsync(assetCategories, plytixInstance.Plytix.Id.ToString());
 
                 actionResult.Succeeded = true;
+                actionResult.Entity = assetCategories;
 
                 return actionResult;
             }

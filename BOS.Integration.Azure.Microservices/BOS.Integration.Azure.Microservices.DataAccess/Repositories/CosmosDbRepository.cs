@@ -2,8 +2,11 @@
 using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
@@ -46,6 +49,40 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
             }
 
             return results;
+        }
+
+        public async Task<ICollection<V>> GetAllPropertyValuesAsync<V>(Expression<Func<T, V>> selectExpression, string partitionKey = null)
+        {
+            QueryRequestOptions requestOptions = null;
+
+            if (!string.IsNullOrEmpty(partitionKey))
+            {
+                requestOptions = new QueryRequestOptions
+                {
+                    PartitionKey = this.ResolvePartitionKey(partitionKey)
+                };
+            }
+
+            var iterator = _container.GetItemLinqQueryable<T>(requestOptions: requestOptions).Select(selectExpression).ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).ToList();
+        }
+
+        public async Task<ICollection<T>> GetAllExceptAsync(ICollection<T> items, string partitionKey = null)
+        {
+            QueryRequestOptions requestOptions = null;
+
+            if (!string.IsNullOrEmpty(partitionKey))
+            {
+                requestOptions = new QueryRequestOptions
+                {
+                    PartitionKey = this.ResolvePartitionKey(partitionKey)
+                };
+            }
+
+            var iterator = _container.GetItemLinqQueryable<T>(requestOptions: requestOptions).Except(items).ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).ToList();
         }
 
         public async Task<T> GetByIdAsync(string id, string partitionKey = null)
@@ -110,6 +147,18 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         public async Task DeleteAsync(string id, string partitionKey = null)
         {
             await this._container.DeleteItemAsync<T>(id, ResolvePartitionKey(partitionKey ?? id));
+        }
+
+        public async Task DeleteRangeAsync(ICollection<string> ids, string partitionKey = null)
+        {
+            var tasks = new List<Task>();
+
+            foreach (var id in ids)
+            {
+                tasks.Add(_container.DeleteItemAsync<T>(id, ResolvePartitionKey(partitionKey ?? id)));
+            }
+
+            await Task.WhenAll(tasks);
         }
     }
 }
