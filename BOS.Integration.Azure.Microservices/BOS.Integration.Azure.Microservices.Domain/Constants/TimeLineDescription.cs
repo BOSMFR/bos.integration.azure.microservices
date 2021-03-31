@@ -19,11 +19,19 @@
         public const string ErrorUpdatingERP = "Error updating ERP - ";
 
         // Collection
-        public const string CollectionUpdatedSuccessfully = "Collection successfully updated into Plytix";
-        public const string CollectionUpdateError = "Error during updating Collection into Plytix - ";
+        public const string CollectionPaUpdatedSuccessfully = "Collection product attribute successfully updated into Plytix";
+        public const string CollectionPaUpdateError = "Error during updating Collection product attribute into Plytix - ";
+        public const string CollectionAcUpdatedSuccessfully = "Collection asset category successfully updated into Plytix";
+        public const string CollectionAcUpdateError = "Error during updating Collection asset category into Plytix - ";
 
         // Delivery period
-        public const string DeliveryPeriodUpdatedSuccessfully = "Delivery period successfully updated into Plytix";
-        public const string DeliveryPeriodUpdateError = "Error during updating Delivery period into Plytix - ";
+        public const string DeliveryPeriodPaUpdatedSuccessfully = "DeliveryPeriod product attribute successfully updated into Plytix";
+        public const string DeliveryPeriodPaUpdateError = "Error during updating DeliveryPeriod product attribute into Plytix - ";
+        public const string DeliveryPeriodAcUpdatedSuccessfully = "Delivery Period asset category successfully updated into Plytix";
+        public const string DeliveryPeriodAcUpdateError = "Error during updating Delivery Period asset category into Plytix - ";
+
+        // Plytix
+        public const string PlytixSyncSuccessfully = "Synchronized with Plytix successfully. Synchronization made by user: ";
+        public const string PlytixSyncError = "Error during synchronization with Plytix. Synchronization made by user: ";
     }
 }

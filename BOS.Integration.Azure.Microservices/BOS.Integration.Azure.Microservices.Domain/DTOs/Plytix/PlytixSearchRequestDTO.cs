@@ -6,6 +6,9 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Plytix
     public class PlytixSearchRequestDTO
     {
         [JsonProperty(PropertyName = "attributes")]
-        public ICollection<string> Attributes { get; set; }
+        public IReadOnlyCollection<string> Attributes { get; set; }
+
+        [JsonProperty(PropertyName = "pagination")]
+        public PaginationDTO Pagination { get; set; }
     }
 }

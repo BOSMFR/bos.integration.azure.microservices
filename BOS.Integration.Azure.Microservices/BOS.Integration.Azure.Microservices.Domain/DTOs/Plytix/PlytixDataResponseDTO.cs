@@ -2,10 +2,8 @@
 
 namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Plytix
 {
-    public class PlytixSearchResponseDTO<T> : HttpResponse
+    public class PlytixDataResponseDTO<T> : HttpResponse
     {
         public ICollection<T> Data { get; set; }
-
-        public PaginationDTO Pagination { get; set; }
     }
 }

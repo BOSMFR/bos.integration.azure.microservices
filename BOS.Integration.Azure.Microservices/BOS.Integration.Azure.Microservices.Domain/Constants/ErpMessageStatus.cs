@@ -20,5 +20,9 @@
         // Delivery period
         public const string DeliveryPeriodUpdatedSuccessfully = "Delivery period successfully updated into Plytix";
         public const string DeliveryPeriodUpdateError = "Error during updating Delivery period into Plytix";
+
+        // Plytix
+        public const string PlytixSyncSuccessfully = "Synchronized with Plytix successfully";
+        public const string PlytixSyncError = "Error during synchronization with Plytix";
     }
 }

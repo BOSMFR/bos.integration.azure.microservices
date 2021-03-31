@@ -54,29 +54,33 @@ namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
 
                 var deliveryPeriod = await this.deliveryPeriodService.CreateOrUpdateDeliveryPeriodAsync(deliveryPeriodDTO);
 
+                // Add erp messages and time lines
                 var erpInfo = this.mapper.Map<LogInfo>(deliveryPeriod);
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
-                // Update plytix product attribute
-                var attributeOptions = deliveryPeriod.Details.Where(x => x.Active).Select(x => x.Id);
-                var result = await this.plytixService.UpdateProductAttributeOptionsAsync(deliveryPeriod.Category, attributeOptions);
+                // Update plytix options
+                var options = deliveryPeriod.Details.Where(x => x.Active).Select(x => x.Id);
+                var result = await this.plytixService.UpdatePlytixOptionsAsync(deliveryPeriod.Category, options);
 
-                if (result.Succeeded)
+                erpMessages.Add(result.Succeeded ? ErpMessageStatus.DeliveryPeriodUpdatedSuccessfully : ErpMessageStatus.DeliveryPeriodUpdateError);
+
+                var updatePlytixTimeLines = result.Entity as List<TimeLineDTO>;
+
+                if (updatePlytixTimeLines != null)
                 {
-                    erpMessages.Add(ErpMessageStatus.DeliveryPeriodUpdatedSuccessfully);
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveryPeriodUpdatedSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
-                }
-                else
-                {
-                    erpMessages.Add(ErpMessageStatus.DeliveryPeriodUpdateError);
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveryPeriodUpdateError + result.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.AddRange(updatePlytixTimeLines);
                 }
 
-                // Write time lines to database
+                // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(erpInfo, erpMessages);
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+
+                if (!result.Succeeded)
+                {
+                    throw new Exception(result.Error);
+                }
             }
             catch (Exception ex)
             {
