@@ -5,7 +5,7 @@
         // General
         public const string ReceivedFromErp = "Received from ERP";
 
-        // Sku
+        // Sku, GoodsReceival
         public const string UpdateMessage = "Update Message added to Azure Service bus";
         public const string CreateMessage = "Create Message added to Azure Service bus";
         public const string DeliveredSuccessfully = "Delivered Successfully to Prime Cargo";

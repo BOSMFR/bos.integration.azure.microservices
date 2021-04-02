@@ -1,5 +1,6 @@
 using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
@@ -28,8 +29,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("UpdateSkuIntoNav function recieved the message from the topic");
 
-                var messageObject = JsonConvert.DeserializeObject<PrimeCargoProductResponseMessage>(mySbMsg);
-                var primeCargoResponse = messageObject?.PrimeCargoProduct;
+                var messageObject = JsonConvert.DeserializeObject<PrimeCargoResponseMessage<PrimeCargoProductResponseDTO>>(mySbMsg);
+                var primeCargoResponse = messageObject?.PrimeCargoResponseObject;
 
                 ActionExecutionResult result = null;
 

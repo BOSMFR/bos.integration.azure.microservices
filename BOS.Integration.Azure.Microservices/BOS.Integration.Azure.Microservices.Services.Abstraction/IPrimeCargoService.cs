@@ -8,5 +8,7 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     public interface IPrimeCargoService
     {
         Task<Message> CreateOrUpdatePrimeCargoProductAsync(string mySbMsg, ILogger log, ActionType actionType);
+
+        Task<Message> CreateOrUpdatePrimeCargoGoodsReceivalAsync(string mySbMsg, ILogger log, ActionType actionType);
     }
 }
