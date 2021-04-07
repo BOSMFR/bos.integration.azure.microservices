@@ -1,6 +1,6 @@
-﻿namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Product
+﻿namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo
 {
-    public class PrimeCargoProductResponseDetail
+    public class PrimeCargoResponseDetails
     {
         public string Type { get; set; }
 

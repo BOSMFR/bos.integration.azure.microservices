@@ -1,6 +1,7 @@
 using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
@@ -94,7 +95,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                 // Create a topic message
-                var messageBody = new PrimeCargoProductRequestMessage { ErpInfo = erpInfo, PrimeCargoProduct = primeCargoProduct };
+                var messageBody = new PrimeCargoRequestMessage<PrimeCargoProductRequestDTO> { ErpInfo = erpInfo, PrimeCargoRequestObject = primeCargoProduct };
 
                 string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
 

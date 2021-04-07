@@ -137,7 +137,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     string errorMessage = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {bodyContent}";
                     this.logger.LogError(errorMessage);
 
-                    return result.StatusCode == HttpStatusCode.RequestTimeout ? new V { StatusCode = Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString() } : default;
+                    return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString(), Error = errorMessage };
                 }
             }
         }
