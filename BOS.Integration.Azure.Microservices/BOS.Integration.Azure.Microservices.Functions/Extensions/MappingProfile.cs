@@ -4,22 +4,24 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.Collection;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.DeliveryPeriod;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Noos;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
 using BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod;
-
+using BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Noos;
-using BOS.Integration.Azure.Microservices.Domain.Entities.Product;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
-
-using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod.DeliveryPeriod;
-using NoosEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Noos.Noos;
-using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
-using BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival;
 using System.Linq;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
+using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod.DeliveryPeriod;
+using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
+using NoosEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Noos.Noos;
+using PackshotEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Packshot.Packshot;
+using ProductEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Product.Product;
+
 
 namespace BOS.Integration.Azure.Microservices.Functions.Extensions
 {
@@ -27,8 +29,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
     {
         public MappingProfile()
         {
-            CreateMap<ProductDTO, Product>();
-            CreateMap<Product, ProductDTO>();
+            CreateMap<ProductDTO, ProductEntity>();
+            CreateMap<ProductEntity, ProductDTO>();
 
             CreateMap<CollectionDTO, CollectionEntity>()
                 .ForMember(x => x.Details, x => x.MapFrom(x => x.Season));
@@ -46,7 +48,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<NoosDetailsDTO, NoosDetails>()
                 .ForMember(x => x.ColorId, x => x.MapFrom(x => x.ColorCode));
 
-            CreateMap<Product, ProductGridDTO>()
+            CreateMap<ProductEntity, ProductGridDTO>()
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
 
             CreateMap<ProductDTO, PrimeCargoProductRequestDTO>()
@@ -60,7 +62,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.Variant4, x => x.MapFrom(x => (x.Assortment.Code + " " + x.Assortment.Description).Trim()))
                 .ForMember(x => x.Variant5, x => x.MapFrom(x => x.Sku));
 
-            CreateMap<Product, PrimeCargoProductRequestDTO>()
+            CreateMap<ProductEntity, PrimeCargoProductRequestDTO>()
                 .ForMember(x => x.Barcode, x => x.MapFrom(x => x.EanNo))
                 .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
                 .ForMember(x => x.TypeId, x => x.MapFrom(x => MapPrimeCargoProductType(x.WmsProductType)))
@@ -81,6 +83,13 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<ErpEntity, LogInfo>()
                 .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
                 .ForMember(x => x.Object, x => x.MapFrom(x => x.Category));
+
+            CreateMap<AssertEntity, LogInfo>()
+                .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
+                .ForMember(x => x.Object, x => x.MapFrom(x => x.AssertType))
+                .ForMember(x => x.ErpDateTime, x => x.MapFrom(x => x.Created))
+                .ForMember(x => x.ReceivedFromErp, x => x.MapFrom(x => x.ReceivedFromSsis));
+
             CreateMap<LogInfo, ErpMessage>();
             CreateMap<LogInfo, TimeLine>();
 
@@ -98,6 +107,13 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ExtReference, x => x.MapFrom(x => x.LineNo))
                 .ForMember(x => x.Qty, x => x.MapFrom(x => x.QtyToReceive))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => MapPurchaseLineProductId(x)));
+
+            CreateMap<PackshotDTO, PackshotEntity>();
+            CreateMap<PackshotEntity, PackshotDTO>();
+            CreateMap<PackshotEntity, PlytixPackshotRequestDTO>()
+                .ForMember(x => x.PlytixInstance, x => x.MapFrom(x => x.Product.Brand));
+
+            CreateMap<File, FileDTO>();
         }
 
         private int MapPurchaseLineProductId(PurchaseLine purchaseLine) =>

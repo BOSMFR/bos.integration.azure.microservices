@@ -1,5 +1,5 @@
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -27,9 +27,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 
                 bool isSucceeded = false;
 
-                var messageObject = JsonConvert.DeserializeObject<PrimeCargoResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
+                var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
 
-                isSucceeded = await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(messageObject.PrimeCargoResponseObject);
+                isSucceeded = await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(messageObject.ResponseObject);
 
                 if (isSucceeded)
                 {

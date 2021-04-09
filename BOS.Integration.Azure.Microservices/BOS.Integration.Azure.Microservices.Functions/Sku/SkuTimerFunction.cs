@@ -62,7 +62,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                         await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.PrepareForServiceBus, TimeLineStatus.Information);
 
                         // Create a topic message
-                        var messageBody = new PrimeCargoRequestMessage<PrimeCargoProductRequestDTO> { ErpInfo = erpInfo, PrimeCargoRequestObject = primeCargoProduct };
+                        var messageBody = new RequestMessage<PrimeCargoProductRequestDTO> { ErpInfo = erpInfo, RequestObject = primeCargoProduct };
 
                         string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
 

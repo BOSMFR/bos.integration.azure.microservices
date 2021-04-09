@@ -11,5 +11,6 @@
         public const string Style = "style";
         public const string Inventory = "inventory";
         public const string Order = "order";
+        public const string Packshot = "packshot";
     }
 }

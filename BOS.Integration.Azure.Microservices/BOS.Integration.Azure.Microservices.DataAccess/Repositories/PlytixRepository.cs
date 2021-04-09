@@ -31,5 +31,14 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 
             return plytix?.PlytixInstances.Where(x => x.Active).ToList();
         }
+
+        public async Task<PlytixInstance> GetActiveInstanceByNameAsync(string name)
+        {
+            var iterator = _container.GetItemLinqQueryable<Plytix>().ToFeedIterator();
+
+            var plytix = (await iterator.ReadNextAsync()).FirstOrDefault();
+
+            return plytix?.PlytixInstances.FirstOrDefault(x => x.Active && x.Name == name);
+        }
     }
 }

@@ -106,7 +106,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                 // Create a topic message
-                var messageBody = new PrimeCargoRequestMessage<PrimeCargoGoodsReceivalRequestDTO> { ErpInfo = erpInfo, PrimeCargoRequestObject = primeCargoGoodsReceival };
+                var messageBody = new RequestMessage<PrimeCargoGoodsReceivalRequestDTO> { ErpInfo = erpInfo, RequestObject = primeCargoGoodsReceival };
 
                 string primeCargoProductJson = JsonConvert.SerializeObject(messageBody);
 
