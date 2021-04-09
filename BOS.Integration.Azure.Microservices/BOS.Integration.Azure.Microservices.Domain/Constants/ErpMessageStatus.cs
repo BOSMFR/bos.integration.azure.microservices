@@ -4,6 +4,7 @@
     {
         // General
         public const string ReceivedFromErp = "Received from ERP";
+        public const string ReceivedFromSsis = "Received from SSIS";
 
         // Sku, GoodsReceival
         public const string UpdateMessage = "Update Message added to Azure Service bus";
@@ -24,5 +25,12 @@
         // Plytix
         public const string PlytixSyncSuccessfully = "Synchronized with Plytix successfully";
         public const string PlytixSyncError = "Error during synchronization with Plytix";
+        public const string PlytixCreateTimeout = "Timeout received from Plytix API (Create)";
+        public const string PlytixUpdateTimeout = "Timeout received from Plytix API (Update)";
+        public const string PlytixDeliveredSuccessfully = "Delivered Successfully to Plytix";
+
+        // Packshot 
+        public const string ErrorCreatePackshot = "Error during creating Packshot into Plytix";
+        public const string ErrorUpdatePackshot = "Error during updating Packshot into Plytix";
     }
 }

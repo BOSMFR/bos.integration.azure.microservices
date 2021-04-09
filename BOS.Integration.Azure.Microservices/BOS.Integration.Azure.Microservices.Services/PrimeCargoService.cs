@@ -51,7 +51,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             var timeLines = new List<TimeLineDTO>();
 
             // Deserialize prime cargo goods receival from the message
-            var messageObject = JsonConvert.DeserializeObject<PrimeCargoRequestMessage<PrimeCargoGoodsReceivalRequestDTO>>(mySbMsg);
+            var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoGoodsReceivalRequestDTO>>(mySbMsg);
 
             erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
 
@@ -65,7 +65,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             // Use prime cargo API to process the object
             string goodsReceivalUrl = configuration.PrimeCargoSettings.Url + "GoodsReceival/CreateGoodsReceival";
 
-            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.PrimeCargoRequestObject);
+            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.RequestObject);
 
             if (response.Succeeded)
             {
@@ -97,7 +97,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
             // Create a topic message
-            var messageBody = new PrimeCargoResponseMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = messageObject.ErpInfo, PrimeCargoResponseObject = responseContent?.Data };
+            var messageBody = new ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = messageObject.ErpInfo, ResponseObject = responseContent?.Data };
 
             string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
 
@@ -110,11 +110,11 @@ namespace BOS.Integration.Azure.Microservices.Services
             var timeLines = new List<TimeLineDTO>();
 
             // Deserialize prime cargo product from the message and validate it
-            var messageObject = JsonConvert.DeserializeObject<PrimeCargoRequestMessage<PrimeCargoProductRequestDTO>>(mySbMsg);
+            var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoProductRequestDTO>>(mySbMsg);
 
             erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
 
-            if (!validationService.Validate(messageObject.PrimeCargoRequestObject))
+            if (!validationService.Validate(messageObject.RequestObject))
             {
                 erpMessageStatuses.Add(ErpMessageStatus.Error);
 
@@ -135,7 +135,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             // Use prime cargo API to process the object
             string productUrl = configuration.PrimeCargoSettings.Url + "Product/" + (actionType == ActionType.Create ? "CreateProduct" : "UpdateProduct");
 
-            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseData>(productUrl, messageObject.PrimeCargoRequestObject);
+            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseData>(productUrl, messageObject.RequestObject);
 
             if (response.Succeeded)
             {
@@ -155,7 +155,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             var responseContent = response.Entity as PrimeCargoResponseContent<PrimeCargoProductResponseData>;            
 
             var primeCargoResponse = this.mapper.Map<PrimeCargoProductResponseDTO>(responseContent);
-            primeCargoResponse.ErpjobId = messageObject.PrimeCargoRequestObject.ErpjobId;
+            primeCargoResponse.ErpjobId = messageObject.RequestObject.ErpjobId;
 
             if (primeCargoResponse?.ResponseCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
             {
@@ -169,7 +169,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 primeCargoResponse = new PrimeCargoProductResponseDTO
                 {
-                    EnaNo = messageObject.PrimeCargoRequestObject.Barcode,
+                    EnaNo = messageObject.RequestObject.Barcode,
                     Success = response.Succeeded
                 };
             }
@@ -179,7 +179,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
             // Create a topic message
-            var messageBody = new PrimeCargoResponseMessage<PrimeCargoProductResponseDTO> { ErpInfo = messageObject.ErpInfo, PrimeCargoResponseObject = primeCargoResponse };
+            var messageBody = new ResponseMessage<PrimeCargoProductResponseDTO> { ErpInfo = messageObject.ErpInfo, ResponseObject = primeCargoResponse };
 
             string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
 

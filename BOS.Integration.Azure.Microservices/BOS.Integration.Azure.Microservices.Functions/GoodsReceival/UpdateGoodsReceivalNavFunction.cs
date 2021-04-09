@@ -1,5 +1,6 @@
 using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
@@ -29,8 +30,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
             {
                 log.LogInformation("UpdateGoodsReceivalNav function recieved the message from the topic");
 
-                var messageObject = JsonConvert.DeserializeObject<PrimeCargoResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
-                var primeCargoResponse = messageObject?.PrimeCargoResponseObject;
+                var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
+                var primeCargoResponse = messageObject?.ResponseObject;
 
                 ActionExecutionResult result = null;
 
@@ -42,11 +43,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 {
                     string errorMessage = string.IsNullOrEmpty(result?.Error) ? "Could not update the GoodsReceival into Nav" : result.Error;
 
-                    //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingERP + errorMessage, TimeLineStatus.Error);
+                    //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingERP + errorMessage, TimeLineStatus.Error); Temporary !!!
                     //throw new Exception(errorMessage);
                 }
 
-                //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully);
+                //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully); Temporary !!!
 
             }
             catch (Exception ex)

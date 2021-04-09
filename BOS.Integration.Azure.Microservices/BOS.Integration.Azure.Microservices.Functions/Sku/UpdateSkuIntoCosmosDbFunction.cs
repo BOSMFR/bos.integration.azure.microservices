@@ -1,4 +1,4 @@
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
@@ -27,9 +27,9 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 bool isSucceeded = false;
 
-                var messageObject = JsonConvert.DeserializeObject<PrimeCargoResponseMessage<PrimeCargoProductResponseDTO>>(mySbMsg);
+                var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoProductResponseDTO>>(mySbMsg);
 
-                isSucceeded = await productService.UpdateProductFromPrimeCargoInfoAsync(messageObject.PrimeCargoResponseObject);
+                isSucceeded = await productService.UpdateProductFromPrimeCargoInfoAsync(messageObject.ResponseObject);
 
                 if (isSucceeded)
                 {

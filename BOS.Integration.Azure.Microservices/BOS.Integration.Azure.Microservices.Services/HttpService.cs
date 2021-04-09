@@ -124,20 +124,23 @@ namespace BOS.Integration.Azure.Microservices.Services
                 var bodyContent = JsonConvert.SerializeObject(dataParams);
                 var result = await client.PostAsync(url, new StringContent(bodyContent, Encoding.UTF8, "application/json"));
 
-                if (result.StatusCode == HttpStatusCode.OK)
+                if (result.StatusCode == HttpStatusCode.OK || result.StatusCode == HttpStatusCode.Created)
                 {
                     var content = await result.Content.ReadAsStringAsync();
                     var response = JsonConvert.DeserializeObject<V>(content);
-                    response.StatusCode = Convert.ToInt32(HttpStatusCode.OK).ToString();
+                    response.StatusCode = Convert.ToInt32(result.StatusCode).ToString();
 
                     return response;
                 }
                 else
                 {
                     string errorMessage = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {bodyContent}";
+
                     this.logger.LogError(errorMessage);
 
-                    return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString(), Error = errorMessage };
+                    var errorContent = await result.Content.ReadAsStringAsync();
+
+                    return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString(), Error = errorMessage, ErrorObject = errorContent };
                 }
             }
         }

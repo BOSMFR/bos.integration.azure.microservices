@@ -7,5 +7,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
     public interface IPlytixRepository : IRepository<Plytix>
     {
         Task<List<PlytixInstance>> GetActiveInstancesAsync();
+
+        Task<PlytixInstance> GetActiveInstanceByNameAsync(string name);
     }
 }

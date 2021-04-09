@@ -4,7 +4,7 @@
     {
         public bool Succeeded { get; set; } = false;
 
-        public string Content{ get; set; }
+        public string Content { get; set; }
 
         public string Error { get; set; }
     }

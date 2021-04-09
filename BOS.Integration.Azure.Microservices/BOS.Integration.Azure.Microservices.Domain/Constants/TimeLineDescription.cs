@@ -13,6 +13,18 @@
         public const string TimeOutUpdatingErp = "TimeOut updating ERP";
         public const string ErrorUpdatingERP = "Error updating ERP - ";
 
+        // SSIS
+        public const string SsisMessageReceived = "SSIS message Received";
+
+        // Packshot
+        public const string ErrorCreatingPackshot = "Error creating a Packshot - ";
+        public const string PackshotWrongImageFormat = "The packshot has the wrong image format";
+        public const string PackshotBrandMissed = "The packshot product brand value is missed";
+        public const string PackshotCreateMessageSentServiceBus = "Packshot Create Message Sent to Azure Service Bus";
+        public const string PackshotUpdateMessageSentServiceBus = "Packshot Update Message Sent to Azure Service Bus";
+        public const string ErrorCreatePackshotPlytix = "Error creating a Packshot in Plytix - ";
+        public const string ErrorUpdatePackshotPlytix = "Error updating a Packshot in Plytix - ";
+
         // Sku
         public const string PreparingMessageCanceled = "Preparing message canceled - startDatePrimeCargoExport set to ";
         public const string ProductCreateMessageSentServiceBus = "Product Create Message Sent to Azure Service Bus";
@@ -39,5 +51,9 @@
         // Plytix
         public const string PlytixSyncSuccessfully = "Synchronized with Plytix successfully. Synchronization made by user: ";
         public const string PlytixSyncError = "Error during synchronization with Plytix. Synchronization made by user: ";
+        public const string PlytixWrongInstance = "Could not find Plytix instance with name - ";
+        public const string PlytixtokenError = "Could not get access token for instance - ";
+        public const string PlytixRequestTimeOut = "TimeOut sending request to Plytix API";
+        public const string PlytixDeliveredSuccessfully = "Delivered Successfully to Plytix API";
     }
 }

@@ -10,6 +10,9 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.Plytix
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("environment")]
+        public string Environment { get; set; }
+
         [JsonProperty("serverUrl")]
         public string ServerUrl { get; set; }
 
