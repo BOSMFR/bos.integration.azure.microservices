@@ -7,6 +7,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.Noos;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Webhooks;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Collection;
 using BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod;
@@ -14,6 +15,7 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Noos;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Webhooks;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 using System.Linq;
 using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod.DeliveryPeriod;
@@ -114,6 +116,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.PlytixInstance, x => x.MapFrom(x => x.Product.Brand));
 
             CreateMap<File, FileDTO>();
+
+            CreateMap<GoodsReceivalClosedDTO, GoodsReceivalClosed>();
+            CreateMap<GoodsReceivalClosed, GoodsReceivalClosedDTO>();
+
+            CreateMap<GoodsReceivalLineCreatedDTO, GoodsReceivalLineCreated>();
+            CreateMap<GoodsReceivalLineCreated, GoodsReceivalLineCreatedDTO>();
         }
 
         private int MapPurchaseLineProductId(PurchaseLine purchaseLine) =>

@@ -47,6 +47,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<INavService, NavService>();
             builder.Services.AddTransient<IGoodsReceivalService, GoodsReceivalService>();
             builder.Services.AddTransient<IPackshotService, PackshotService>();
+            builder.Services.AddTransient<IWebhookService, WebhookService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
@@ -67,6 +68,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddScoped<IPlytixRepository, PlytixRepository>();
             builder.Services.AddScoped<IGoodsReceivalRepository, GoodsReceivalRepository>();
             builder.Services.AddScoped<IPackshotRepository, PackshotRepository>();
+            builder.Services.AddScoped<IGoodsReceivalClosedRepository, GoodsReceivalClosedRepository>();
+            builder.Services.AddScoped<IGoodsReceivalLineCreatedRepository, GoodsReceivalLineCreatedRepository>();
 
             this.ConfigureAutoMapper(builder.Services);
         }
