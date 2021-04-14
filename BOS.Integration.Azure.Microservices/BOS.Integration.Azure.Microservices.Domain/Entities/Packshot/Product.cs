@@ -21,5 +21,7 @@
         public string CollectionCode { get; set; }
 
         public string CollectionName { get; set; }
+
+        public string DeliveryWindowCode { get; set; }
     }
 }
