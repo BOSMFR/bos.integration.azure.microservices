@@ -6,6 +6,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -75,6 +76,14 @@ namespace BOS.Integration.Azure.Microservices.Services
             await repository.UpdateAsync(packshot, packshot.AssertType);
 
             return true;
+        }
+
+        public async Task<List<Packshot>> GetPackshotsByFilterAsync(PackshotFilterDTO packshotFilter)
+        {
+            packshotFilter.FromDate ??= DateTime.MinValue;
+            packshotFilter.ToDate = packshotFilter.ToDate.HasValue ? packshotFilter.ToDate.Value.AddDays(1) : DateTime.MaxValue;
+
+            return await this.repository.GetByFilterAsync(packshotFilter, NavObjectCategory.Packshot);
         }
     }
 }
