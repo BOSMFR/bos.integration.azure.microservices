@@ -22,7 +22,6 @@ namespace BOS.Integration.Azure.Microservices.Services
 {
     public class PrimeCargoService : IPrimeCargoService
     {
-        private readonly IValidationService validationService;
         private readonly IServiceBusService serviceBusService;
         private readonly IConfigurationManager configuration;
         private readonly IHttpService httpService;
@@ -30,14 +29,12 @@ namespace BOS.Integration.Azure.Microservices.Services
         private readonly IMapper mapper;
 
         public PrimeCargoService(
-            IValidationService validationService,
             IServiceBusService serviceBusService,
             IConfigurationManager configuration, 
             IHttpService httpService,
             ILogService logService,
             IMapper mapper)
         {
-            this.validationService = validationService;
             this.serviceBusService = serviceBusService;
             this.configuration = configuration;
             this.httpService = httpService;
@@ -89,6 +86,10 @@ namespace BOS.Integration.Azure.Microservices.Services
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
                 throw new Exception("Request time out");
             }
 
@@ -109,22 +110,10 @@ namespace BOS.Integration.Azure.Microservices.Services
             var erpMessageStatuses = new List<string>();
             var timeLines = new List<TimeLineDTO>();
 
-            // Deserialize prime cargo product from the message and validate it
+            // Deserialize prime cargo product from the message
             var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoProductRequestDTO>>(mySbMsg);
 
-            erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
-
-            if (!validationService.Validate(messageObject.RequestObject))
-            {
-                erpMessageStatuses.Add(ErpMessageStatus.Error);
-
-                // Write erp messages and a line to database
-                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
-                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.DataValidationFailed, TimeLineStatus.Error);
-
-                log.LogError("Prime Cargo object validation error occured");
-                return null;
-            }
+            erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);            
 
             timeLines.Add(new TimeLineDTO 
             {
@@ -161,6 +150,10 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
                 throw new Exception("Request time out");
             }

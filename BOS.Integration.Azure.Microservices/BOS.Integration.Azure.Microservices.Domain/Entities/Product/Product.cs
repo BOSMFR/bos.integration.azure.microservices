@@ -30,6 +30,8 @@
 
         public string AzureOutboundStatusText { get; set; }
 
+        public bool IsInvalid { get; set; }
+
         public Characteristic Colour { get; set; }
 
         public Characteristic Size { get; set; }

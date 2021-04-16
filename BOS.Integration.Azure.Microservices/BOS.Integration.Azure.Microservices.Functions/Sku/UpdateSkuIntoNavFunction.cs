@@ -48,6 +48,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 }
 
                 await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully);
+
+                log.LogInformation("Sku is successfully updated in Nav");
             }
             catch (Exception ex)
             {

@@ -22,9 +22,11 @@ namespace BOS.Integration.Azure.Microservices.Functions
         private readonly IProductService productService;
         private readonly IMapper mapper;
         private readonly IBlobService blobService;
+        private readonly IValidationService validationService;
 
         public SkuRecipientFunction(
-            IServiceBusService serviceBusService, 
+            IServiceBusService serviceBusService,
+            IValidationService validationService,
             IProductService productService, 
             IMapper mapper, 
             ILogService logService,
@@ -35,6 +37,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             this.logService = logService;
             this.mapper = mapper;
             this.blobService = blobService;
+            this.validationService = validationService;
         }
 
         [FixedDelayRetry(3, "00:05:00")]
@@ -46,6 +49,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("SkuRecipient function recieved the message from the topic");
 
+                var erpMessageStatuses = new List<string>();
                 var timeLines = new List<TimeLineDTO>();
 
                 // Read file from blob storage
@@ -64,22 +68,23 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 //Create an erp message
                 var erpInfo = this.mapper.Map<LogInfo>(product);
 
-                await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
+                erpMessageStatuses.Add(ErpMessageStatus.ReceivedFromErp);
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
                 if (primeCargoIntegrationState == PrimeCargoIntegrationState.Waiting)
                 {
                     timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PreparingMessageCanceled + productDTO.StartDatePrimeCargoExport, Status = TimeLineStatus.Warning, DateTime = DateTime.Now });
 
-                    // Write time lines to database
+                    // Write erp messages and time lines to database
+                    await this.logService.AddErpMessagesAsync(erpInfo, erpMessageStatuses);
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                     log.LogError("Sku is not sent to PrimeCargo because startDatePrimeCargoExport was in wrong format or value was more than today");
                     return null;
                 }
 
-                // Check if product was created in prime cargo
-                if (!isNewObjectCreated && (!product.PrimeCargoProductId.HasValue || product.PrimeCargoProductId == 0))
+                // Check if the product received a response from prime cargo
+                if (!isNewObjectCreated && !product.IsInvalid && product.PrimeCargoIntegration.State != PrimeCargoIntegrationState.DeliveredSuccessfully && product.PrimeCargoIntegration.State != PrimeCargoIntegrationState.Error)
                 {
                     throw new Exception("Cannot proceed with updating SKU into prime cargo because it has not been delivered yet");
                 }
@@ -89,9 +94,26 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
+                // Validate prime cargo product
+                if (!validationService.Validate(primeCargoProduct))
+                {
+                    erpMessageStatuses.Add(ErpMessageStatus.Error);
+
+                    // Set product as invalid
+                    await productService.UpdateProductValidationStatusAsync(product.Id, true);
+
+                    // Write erp messages and a line to database
+                    await this.logService.AddErpMessagesAsync(erpInfo, erpMessageStatuses);
+                    await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.DataValidationFailed, TimeLineStatus.Error);
+
+                    log.LogError("Prime Cargo object validation error occured");
+                    return null;
+                }
+
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
-                // Write time lines to database
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(erpInfo, erpMessageStatuses);
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                 // Create a topic message

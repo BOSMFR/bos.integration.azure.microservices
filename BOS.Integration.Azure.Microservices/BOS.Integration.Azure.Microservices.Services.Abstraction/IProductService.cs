@@ -13,6 +13,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 
         Task<bool> UpdateProductFromPrimeCargoInfoAsync(PrimeCargoProductResponseDTO primeCargoResponse);
 
+        Task UpdateProductValidationStatusAsync(string id, bool isInValid);
+
         Task<List<Product>> GetAllByPrimeCargoIntegrationStateAsync(string primeCargoIntegrationState);
     }
 }

@@ -53,6 +53,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newProduct.Id = product.Id;
                 newProduct.Category = product.Category;
                 newProduct.PrimeCargoProductId = product.PrimeCargoProductId;
+                newProduct.IsInvalid = product.IsInvalid;
                 newProduct.ReceivedFromErp = product.ReceivedFromErp;
 
                 await repository.UpdateAsync(newProduct, newProduct.Category);
@@ -86,6 +87,15 @@ namespace BOS.Integration.Azure.Microservices.Services
             await repository.UpdateAsync(product, product.Category);
 
             return true;
+        }
+
+        public async Task UpdateProductValidationStatusAsync(string id, bool isInValid)
+        {
+            var product = await repository.GetByIdAsync(id, NavObjectCategory.Sku);
+
+            product.IsInvalid = isInValid;
+
+            await repository.UpdateAsync(product, product.Category);
         }
 
         private PrimeCargoIntegration GetPrimeCargoIntegration(bool? delivered, string primeCargoIntegrationState = null) =>
