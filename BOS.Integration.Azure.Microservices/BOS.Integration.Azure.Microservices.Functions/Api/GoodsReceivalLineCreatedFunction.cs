@@ -22,7 +22,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
         [FunctionName("GoodsReceivalLineCreatedFunction")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "GoodsReceivalLineCreated")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "GoodsReceivalLineCreated")] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("HTTP trigger function - \"GoodsReceivalLineCreatedFunction\" processed a request.");
