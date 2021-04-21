@@ -144,7 +144,6 @@ namespace BOS.Integration.Azure.Microservices.Services
             var responseContent = response.Entity as PrimeCargoResponseContent<PrimeCargoProductResponseData>;            
 
             var primeCargoResponse = this.mapper.Map<PrimeCargoProductResponseDTO>(responseContent);
-            primeCargoResponse.ErpjobId = messageObject.RequestObject.ErpjobId;
 
             if (primeCargoResponse?.ResponseCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
             {
@@ -166,6 +165,8 @@ namespace BOS.Integration.Azure.Microservices.Services
                     Success = response.Succeeded
                 };
             }
+
+            primeCargoResponse.ErpjobId = messageObject.RequestObject.ErpjobId;
 
             // Write erp messages and time lines to database
             await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);

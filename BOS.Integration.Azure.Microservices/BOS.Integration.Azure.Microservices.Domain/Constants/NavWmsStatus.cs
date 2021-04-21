@@ -2,7 +2,7 @@
 {
     public class NavWmsStatus
     {
-        public const string Successfully = "4";
-        public const string Failed = "5";
+        public const string Successfully = "Sent Successfully";
+        public const string Failed = "Failed";
     }
 }

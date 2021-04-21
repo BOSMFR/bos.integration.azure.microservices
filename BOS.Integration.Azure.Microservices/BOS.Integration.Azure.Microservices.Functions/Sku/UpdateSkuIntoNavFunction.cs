@@ -34,9 +34,9 @@ namespace BOS.Integration.Azure.Microservices.Functions
 
                 ActionExecutionResult result = null;
 
-                if (!string.IsNullOrEmpty(primeCargoResponse?.EnaNo) && !string.IsNullOrEmpty(primeCargoResponse?.ProductId?.ToString()))
+                if (!string.IsNullOrEmpty(primeCargoResponse?.EnaNo))
                 {
-                    result = await this.navService.UpdateSkuIntoNavAsync(primeCargoResponse.EnaNo, primeCargoResponse.ProductId.ToString());
+                    result = await this.navService.UpdateSkuIntoNavAsync(primeCargoResponse.EnaNo, primeCargoResponse.ProductId?.ToString() ?? "0");
                 }
 
                 if (result == null || !result.Succeeded)

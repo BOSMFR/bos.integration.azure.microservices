@@ -37,12 +37,12 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             var product = await repository.GetByIdAsync(newProduct.EanNo, NavObjectCategory.Sku);
 
-            newProduct.PrimeCargoIntegration = GetPrimeCargoIntegration(product?.PrimeCargoIntegration?.Delivered, primeCargoIntegrationState);
-
             if (product == null)
             {
                 newProduct.Category = NavObjectCategory.Sku;
                 newProduct.ReceivedFromErp = DateTime.Now;
+
+                newProduct.PrimeCargoIntegration = new PrimeCargoIntegration { Delivered = false, State = primeCargoIntegrationState };
 
                 await repository.AddAsync(newProduct, newProduct.Category);
 
@@ -55,6 +55,13 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newProduct.PrimeCargoProductId = product.PrimeCargoProductId;
                 newProduct.IsInvalid = product.IsInvalid;
                 newProduct.ReceivedFromErp = product.ReceivedFromErp;
+                newProduct.PrimeCargoIntegration = product.PrimeCargoIntegration;
+
+                newProduct.PrimeCargoIntegration = new PrimeCargoIntegration 
+                { 
+                    Delivered = product.PrimeCargoIntegration.Delivered, 
+                    State = primeCargoIntegrationState == PrimeCargoIntegrationState.Waiting ? primeCargoIntegrationState : product.PrimeCargoIntegration.State
+                };
 
                 await repository.UpdateAsync(newProduct, newProduct.Category);
             }
@@ -97,12 +104,5 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             await repository.UpdateAsync(product, product.Category);
         }
-
-        private PrimeCargoIntegration GetPrimeCargoIntegration(bool? delivered, string primeCargoIntegrationState = null) =>
-            new PrimeCargoIntegration
-            {
-                Delivered = delivered ?? false,
-                State = primeCargoIntegrationState ?? PrimeCargoIntegrationState.NotDelivered
-            };
     }
 }

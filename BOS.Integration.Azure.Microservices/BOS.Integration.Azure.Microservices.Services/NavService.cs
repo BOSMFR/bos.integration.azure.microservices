@@ -54,9 +54,9 @@ namespace BOS.Integration.Azure.Microservices.Services
                 }
 
                 // Update the sku into Nav
-                string wmsStatus = string.IsNullOrEmpty(productId) || productId == "0" ? NavWmsStatus.Failed : NavWmsStatus.Successfully;
+                string wmsStatus = productId == "0" ? NavWmsStatus.Failed : NavWmsStatus.Successfully;
 
-                string updateSkuBody = GetXmlBody(key, eanNo, productId); //, wmsStatus);
+                string updateSkuBody = GetXmlBody(key, eanNo, productId, wmsStatus);
 
                 if (string.IsNullOrEmpty(updateSkuBody))
                 {
@@ -119,11 +119,11 @@ namespace BOS.Integration.Azure.Microservices.Services
             return key;
         }
 
-        private string GetXmlBody(string key, string eanNo, string productId)//, string wmsStatus)
+        private string GetXmlBody(string key, string eanNo, string productId, string wmsStatus)
         {
             try
             {
-                return string.Format(XmlTemplate.UpdateSkuBody, key, eanNo, productId);//, wmsStatus);
+                return string.Format(XmlTemplate.UpdateSkuBody, key, eanNo, productId, wmsStatus);
             }
             catch
             {
