@@ -19,6 +19,7 @@
                                                           <ean:Key>{0}</ean:Key>
                                                           <ean:EANNo>{1}</ean:EANNo>
                                                           <ean:PrimeCargoProductId>{2}</ean:PrimeCargoProductId>
+                                                          <ean:WMSStatus>{3}</ean:WMSStatus>
                                                       </ean:EanNoUpdate>
                                                       </ean:Update>
                                                   </soapenv:Body>
