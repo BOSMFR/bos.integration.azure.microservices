@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
+﻿using AutoMapper;
+using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
 using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
@@ -10,7 +11,6 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -28,42 +28,43 @@ namespace BOS.Integration.Azure.Microservices.Services
         private List<string> AssetCategoryFilterAttributes { get; }
 
         private readonly IConfigurationManager configuration;
-        private readonly IServiceBusService serviceBusService;
+        private readonly IAssetCategoryService assetCategoryService;
         private readonly IHttpService httpService;
         private readonly ILogService logService;
         private readonly IProductAttributeRepository productAttributeRepository;
         private readonly IAssetCategoryRepository assetCategoryRepository;
         private readonly IPlytixRepository plytixRepository;
+        private readonly IMapper mapper;
 
         public PlytixService(
             IConfigurationManager configuration,
-            IServiceBusService serviceBusService,
+            IAssetCategoryService assetCategoryService,
             IHttpService httpService,
             ILogService logService,
             IProductAttributeRepository productAttributeRepository,
             IAssetCategoryRepository assetCategoryRepository,
-            IPlytixRepository plytixRepository)
+            IPlytixRepository plytixRepository,
+            IMapper mapper)
         {
             this.configuration = configuration;
-            this.serviceBusService = serviceBusService;
+            this.assetCategoryService = assetCategoryService;
             this.httpService = httpService;
             this.logService = logService;
             this.productAttributeRepository = productAttributeRepository;
             this.assetCategoryRepository = assetCategoryRepository;
             this.plytixRepository = plytixRepository;
+            this.mapper = mapper;
 
             this.ProductAttibuteFilterAttributes = new List<string> { "name", "label", "attributes", "groups", "type_class", "options" };
             this.AssetCategoryFilterAttributes = new List<string> { "name", "n_children", "path", "parents_ids", "order" };
         }
 
-        public async Task<Message> CreateOrUpdatePackshotAsync(string mySbMsg, ILogger log, ActionType actionType)
+        public async Task<PackshotCreateUpdateDTO> CreateOrUpdatePackshotAsync(RequestMessage<PlytixPackshotRequestDTO> messageObject, ILogger log, ActionType actionType)
         {
             var erpMessageStatuses = new List<string>();
             var timeLines = new List<TimeLineDTO>();
 
-            // Deserialize plytix packshot from the message
-            var messageObject = JsonConvert.DeserializeObject<RequestMessage<PlytixPackshotRequestDTO>>(mySbMsg);
-
+            // Add erp messages and time lines
             erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
 
             timeLines.Add(new TimeLineDTO
@@ -164,14 +165,73 @@ namespace BOS.Integration.Azure.Microservices.Services
             await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
             await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
-            // Create a topic message
+            // Create update categories request object
             var plytixResponseObject = new PlytixData<PlytixPackshotResponseData> { Data = response?.Data };
 
-            var messageBody = new ResponseMessage<PlytixData<PlytixPackshotResponseData>> { ErpInfo = messageObject.ErpInfo, ResponseObject = plytixResponseObject };
+            var packshotUpdateCategoryDTO = this.mapper.Map<PlytixPackshotUpdateCategoryDTO>(messageObject.RequestObject);
+            packshotUpdateCategoryDTO.Plytix = plytixInstance;
+            packshotUpdateCategoryDTO.PlytixToken = token;
+            packshotUpdateCategoryDTO.AssetId = plytixResponseObject.Data?.FirstOrDefault()?.Id;
 
-            string packshotResponseJson = JsonConvert.SerializeObject(messageBody);
+            return new PackshotCreateUpdateDTO { PlytixResponseObject = plytixResponseObject, PackshotUpdateCategoryDTO = packshotUpdateCategoryDTO };            
+        }
 
-            return this.serviceBusService.CreateMessage(packshotResponseJson);
+        public async Task<PlytixData<PlytixPackshotResponseData>> UpdatePackshotCategoriesAsync(ResponseMessage<PlytixPackshotUpdateCategoryDTO> messageObject, ILogger log)
+        {
+            var erpMessageStatuses = new List<string>();
+            var timeLines = new List<TimeLineDTO>();
+
+            var plytixInstance = messageObject.ResponseObject.Plytix;
+
+            // Get asset category ids and create a request object
+            var assetCategoryIds = await this.assetCategoryService.GetAssetCategoryIdsByPackshotInfoAsync(messageObject.ResponseObject);
+
+            var requestObject = new PlytixPackshotUpdateRequestDTO { Categories = assetCategoryIds.Select(id => new PlytixPackshotCategoryDTO { Id = id }).ToList() };
+
+            // Update asset
+            string url = plytixInstance.ServerUrl + "assets/" + messageObject.ResponseObject.AssetId;
+
+            var response = await this.httpService.PatchAsync<PlytixPackshotUpdateRequestDTO, PlytixPackshotResponseDTO>(url, requestObject, messageObject.ResponseObject.PlytixToken);
+
+            // Check response and write logs
+            if (response?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
+            {
+                erpMessageStatuses.Add(ErpMessageStatus.PlytixUpdateTimeout);
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+                throw new Exception("Request time out");
+            }
+
+            if (response.StatusCode != Convert.ToInt32(HttpStatusCode.OK).ToString())
+            {
+                var responseError = JsonConvert.DeserializeObject<PlytixAssetCategoryUpdateErrorDTO>(response.ErrorObject);
+
+                string error = TimeLineDescription.ErrorUpdatePackshotCategoryPlytix + responseError.Message;
+
+                erpMessageStatuses.Add(ErpMessageStatus.ErrorUpdatedPackshotCategory);
+                timeLines.Add(new TimeLineDTO { Description = error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                log.LogError(error);
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+                return null;
+            }
+
+            erpMessageStatuses.Add(ErpMessageStatus.SuccessfullyUpdatedPackshotCategory);
+            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.SuccsessUpdatePackshotCategoryPlytix, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+
+            // Write erp messages and time lines to database
+            await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+            await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+            return new PlytixData<PlytixPackshotResponseData> { Data = response?.Data };
         }
 
         public async Task<PlytixSyncResultDTO> SynchronizePlytixOptionsAsync(IEnumerable<string> collectionOptions, IEnumerable<string> deliveryPeriodOptions)

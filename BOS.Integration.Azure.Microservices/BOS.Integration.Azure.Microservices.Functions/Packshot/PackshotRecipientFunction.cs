@@ -90,7 +90,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Packshot
                     }
 
                     // Write time lines to database
-                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                     log.LogError(TimeLineDescription.PackshotWrongImageFormat);
                     return null;

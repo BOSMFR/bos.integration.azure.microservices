@@ -32,5 +32,7 @@
         // Packshot 
         public const string ErrorCreatePackshot = "Error during creating Packshot into Plytix";
         public const string ErrorUpdatePackshot = "Error during updating Packshot into Plytix";
+        public const string SuccessfullyUpdatedPackshotCategory = "Packshot categories successfully updated into Plytix";
+        public const string ErrorUpdatedPackshotCategory = "Error during updating Packshot categories into Plytix";
     }
 }

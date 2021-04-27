@@ -1,12 +1,15 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
+using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
 
 namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot
 {
-    public class PlytixPackshotRequestDTO
+    public class PlytixPackshotUpdateCategoryDTO
     {
-        public FileDTO File { get; set; }
+        public string AssetId { get; set; }
 
-        public string PlytixInstance { get; set; }
+        public PlytixInstance Plytix { get; set; }
+
+        public string PlytixToken { get; set; }
 
         public string CollectionCode { get; set; }
 

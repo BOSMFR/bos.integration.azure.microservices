@@ -159,14 +159,17 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                 var bodyContent = JsonConvert.SerializeObject(dataParams);
                 var result = await client.PatchAsync(url, new StringContent(bodyContent, Encoding.UTF8, "application/json"));
+                string errorContent = null;
 
                 if (result.StatusCode != HttpStatusCode.OK)
                 {
+                    errorContent = await result.Content.ReadAsStringAsync();
+
                     string errorMessage = $"Failed to patch by the URL: {url}" + Environment.NewLine + $"Body: {bodyContent}";
                     this.logger.LogError(errorMessage);
                 }
 
-                return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString() };
+                return new V { StatusCode = Convert.ToInt32(result.StatusCode).ToString(), ErrorObject = errorContent };
             }
         }
     }

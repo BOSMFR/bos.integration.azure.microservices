@@ -24,6 +24,8 @@
         public const string PackshotUpdateMessageSentServiceBus = "Packshot Update Message Sent to Azure Service Bus";
         public const string ErrorCreatePackshotPlytix = "Error creating a Packshot in Plytix - ";
         public const string ErrorUpdatePackshotPlytix = "Error updating a Packshot in Plytix - ";
+        public const string ErrorUpdatePackshotCategoryPlytix = "Error during updating Packshot categories into Plytix - ";
+        public const string SuccsessUpdatePackshotCategoryPlytix = "Packshot categories successfully updated into Plytix";
 
         // Sku
         public const string PreparingMessageCanceled = "Preparing message canceled - startDatePrimeCargoExport set to ";

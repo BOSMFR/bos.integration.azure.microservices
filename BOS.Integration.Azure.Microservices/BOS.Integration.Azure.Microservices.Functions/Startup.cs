@@ -48,6 +48,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IGoodsReceivalService, GoodsReceivalService>();
             builder.Services.AddTransient<IPackshotService, PackshotService>();
             builder.Services.AddTransient<IWebhookService, WebhookService>();
+            builder.Services.AddTransient<IAssetCategoryService, AssetCategoryService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
