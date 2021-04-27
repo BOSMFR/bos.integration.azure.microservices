@@ -64,7 +64,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
 
             // Find asset category by brand
-            var brandPath = new List<string> { AssetCategoryName.Brand, plytixPackshot.Plytix.Name};
+            var brandPath = new List<string> { AssetCategoryName.Brand, !string.IsNullOrEmpty(plytixPackshot.Brand) ? plytixPackshot.Brand : AssetCategoryName.Default };
 
             string brandCategoryId = assetCategories.Where(x => x.Path.SequenceEqual(brandPath)).FirstOrDefault()?.Id;
 

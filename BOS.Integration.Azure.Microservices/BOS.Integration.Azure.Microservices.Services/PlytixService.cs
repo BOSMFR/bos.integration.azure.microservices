@@ -79,14 +79,14 @@ namespace BOS.Integration.Azure.Microservices.Services
             fileDto.Url = Uri.UnescapeDataString(fileDto.Url);
 
             // Get plytix instance by product brand
-            var plytixInstance = await plytixRepository.GetActiveInstanceByNameAsync(messageObject.RequestObject.PlytixInstance);
+            var plytixInstance = await plytixRepository.GetActiveInstanceAsync();
 
             if (plytixInstance == null)
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.ErrorCreatePackshot : ErpMessageStatus.ErrorUpdatePackshot);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixWrongInstance + messageObject.RequestObject.PlytixInstance, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixInstanceError, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
-                log.LogError(TimeLineDescription.PlytixWrongInstance + messageObject.RequestObject.PlytixInstance);
+                log.LogError(TimeLineDescription.PlytixInstanceError);
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -109,9 +109,9 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (string.IsNullOrEmpty(token))
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.ErrorCreatePackshot : ErpMessageStatus.ErrorUpdatePackshot);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixtokenError + plytixInstance.Name, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixTokenError + plytixInstance.Name, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
-                log.LogError(TimeLineDescription.PlytixtokenError + plytixInstance.Name);
+                log.LogError(TimeLineDescription.PlytixTokenError + plytixInstance.Name);
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -240,7 +240,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             try
             {
-                var response = await GetPlytixInstancesWithTokensAsync();
+                var response = await GetPlytixInstanceWithTokenAsync();
 
                 if (!response.Succeeded)
                 {
@@ -248,7 +248,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                var plytixData = response.Entity as List<PlytixInstanceDTO>;
+                var plytixData = response.Entity as PlytixInstanceDTO;
 
                 // Sync Collection options
                 actionResult.UpdateCollectionResult = await this.UpdatePlytixOptionsAsync(NavObjectCategory.Collection, collectionOptions, plytixData);
@@ -267,16 +267,16 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<ActionExecutionResult> UpdatePlytixOptionsAsync(string label, IEnumerable<string> options, List<PlytixInstanceDTO> plytixInstances = null)
+        public async Task<ActionExecutionResult> UpdatePlytixOptionsAsync(string label, IEnumerable<string> options, PlytixInstanceDTO plytixData = null)
         {
             var actionResult = new ActionExecutionResult();
             var timeLines = new List<TimeLineDTO>();
 
             try
             {
-                if (plytixInstances == null)
+                if (plytixData == null)
                 {
-                    var response = await GetPlytixInstancesWithTokensAsync();
+                    var response = await GetPlytixInstanceWithTokenAsync();
 
                     if (!response.Succeeded)
                     {
@@ -284,68 +284,65 @@ namespace BOS.Integration.Azure.Microservices.Services
                         return actionResult;
                     }
 
-                    plytixInstances = response.Entity as List<PlytixInstanceDTO>;
-                }                
+                    plytixData = response.Entity as PlytixInstanceDTO;
+                }
 
-                foreach (var plytixInstance in plytixInstances)
+                // Synchronize product attributes in the storage with Plytix
+                var synchronizeProductAttributesResponse = await SynchronizeProductAttributesAsync(plytixData);
+
+                if (!synchronizeProductAttributesResponse.Succeeded)
                 {
-                    // Synchronize product attributes in the storage with Plytix
-                    var synchronizeProductAttributesResponse = await SynchronizeProductAttributesAsync(plytixInstance);
+                    actionResult.Error = synchronizeProductAttributesResponse.Error;
+                    return actionResult;
+                }
 
-                    if (!synchronizeProductAttributesResponse.Succeeded)
-                    {
-                        actionResult.Error = synchronizeProductAttributesResponse.Error;
-                        return actionResult;
-                    }
+                // Update product attributes in the storage and Plytix
+                var updateProductAttributeResponse = await UpdateProductAttributeAsync(plytixData, label, options);
 
-                    // Update product attributes in the storage and Plytix
-                    var updateProductAttributeResponse = await UpdateProductAttributeAsync(plytixInstance, label, options);
+                if (updateProductAttributeResponse.Succeeded)
+                {
+                    string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodPaUpdatedSuccessfully;
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                }
+                else
+                {
+                    string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdateError : TimeLineDescription.DeliveryPeriodPaUpdateError;
+                    description += updateProductAttributeResponse.Error;
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                }
 
-                    if (updateProductAttributeResponse.Succeeded)
-                    {
-                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodPaUpdatedSuccessfully;
-                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
-                    }
-                    else
-                    {
-                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdateError : TimeLineDescription.DeliveryPeriodPaUpdateError;
-                        description += updateProductAttributeResponse.Error;
-                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
-                    }
+                // Synchronize asset categories in the storage with Plytix
+                var synchronizeAssetCategoriesResponse = await this.SynchronizeAssetCategoriesAsync(plytixData);
 
-                    // Synchronize asset categories in the storage with Plytix
-                    var synchronizeAssetCategoriesResponse = await this.SynchronizeAssetCategoriesAsync(plytixInstance);
+                if (!synchronizeAssetCategoriesResponse.Succeeded)
+                {
+                    actionResult.Error = synchronizeAssetCategoriesResponse.Error;
+                    actionResult.Entity = timeLines;
+                    return actionResult;
+                }
 
-                    if (!synchronizeAssetCategoriesResponse.Succeeded)
-                    {
-                        actionResult.Error = synchronizeAssetCategoriesResponse.Error;
-                        actionResult.Entity = timeLines;
-                        return actionResult;
-                    }
+                // Get not existing in Plytix asset categories
+                var assetCategoriesInPlytix = synchronizeAssetCategoriesResponse.Entity as List<AssetCategory>;
 
-                    // Get not existing in Plytix asset categories
-                    var assetCategoriesInPlytix = synchronizeAssetCategoriesResponse.Entity as List<AssetCategory>;
+                var newOptions = assetCategoriesInPlytix != null ? options.Except(assetCategoriesInPlytix.Select(x => x.Name)) : options;
 
-                    var newOptions = assetCategoriesInPlytix != null ? options.Except(assetCategoriesInPlytix.Select(x => x.Name)) : options;
+                // Update asset categories in Plytix
+                var updateAssetCategoryResponse = await UpdateAssetCategoryAsync(plytixData, label, newOptions);
 
-                    // Update asset categories in Plytix
-                    var updateAssetCategoryResponse = await UpdateAssetCategoryAsync(plytixInstance, label, newOptions);
+                if (updateAssetCategoryResponse.Succeeded)
+                {
+                    string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodAcUpdatedSuccessfully;
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                }
+                else
+                {
+                    string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdateError : TimeLineDescription.DeliveryPeriodAcUpdateError;
+                    description += updateAssetCategoryResponse.Error;
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
-                    if (updateAssetCategoryResponse.Succeeded)
-                    {
-                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodAcUpdatedSuccessfully;
-                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
-                    }
-                    else
-                    {
-                        string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdateError : TimeLineDescription.DeliveryPeriodAcUpdateError;
-                        description += updateAssetCategoryResponse.Error;
-                        timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
-
-                        actionResult.Error = updateAssetCategoryResponse.Error;
-                        actionResult.Entity = timeLines;
-                        return actionResult;
-                    }
+                    actionResult.Error = updateAssetCategoryResponse.Error;
+                    actionResult.Entity = timeLines;
+                    return actionResult;
                 }
 
                 actionResult.Entity = timeLines;
@@ -585,48 +582,42 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        private async Task<ActionExecutionResult> GetPlytixInstancesWithTokensAsync()
+        private async Task<ActionExecutionResult> GetPlytixInstanceWithTokenAsync()
         {
             var actionResult = new ActionExecutionResult();
-            var plytixData = new List<PlytixInstanceDTO>();
 
             try
             {
                 // Get plytix instances from the storage
-                var plytixInstances = await this.plytixRepository.GetActiveInstancesAsync();
+                var plytixInstance = await this.plytixRepository.GetActiveInstanceAsync();
 
-                if (plytixInstances?.Count == 0)
+                if (plytixInstance == null)
                 {
-                    actionResult.Error = "Could not find any active plytix instances";
+                    actionResult.Error = TimeLineDescription.PlytixInstanceError;
 
                     return actionResult;
                 }
 
-                foreach (var plytix in plytixInstances)
+                // Get access token
+                var authBody = new PlytixAuthRequestDTO
                 {
-                    // Get access token
-                    var authBody = new PlytixAuthRequestDTO
-                    {
-                        Key = plytix.Key,
-                        Password = plytix.Paswword
-                    };
+                    Key = plytixInstance.Key,
+                    Password = plytixInstance.Paswword
+                };
 
-                    var authResponse = await this.httpService.PostAsync<PlytixAuthRequestDTO, PlytixAuthResponseDTO>(configuration.PlytixSettings.AuthUrl, authBody);
+                var authResponse = await this.httpService.PostAsync<PlytixAuthRequestDTO, PlytixAuthResponseDTO>(configuration.PlytixSettings.AuthUrl, authBody);
 
-                    string token = authResponse?.Data?.FirstOrDefault()?.AccessToken;
+                string token = authResponse?.Data?.FirstOrDefault()?.AccessToken;
 
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        actionResult.Entity = authResponse;
-                        actionResult.Error = $"Could not get access token for instance {plytix.Name}";
+                if (string.IsNullOrEmpty(token))
+                {
+                    actionResult.Entity = authResponse;
+                    actionResult.Error = $"Could not get access token for instance {plytixInstance.Name}";
 
-                        return actionResult;
-                    }
-
-                    plytixData.Add(new PlytixInstanceDTO { Plytix = plytix, Token = token });
+                    return actionResult;
                 }
 
-                actionResult.Entity = plytixData;
+                actionResult.Entity = new PlytixInstanceDTO { Plytix = plytixInstance, Token = token };
                 actionResult.Succeeded = true;
 
                 return actionResult;

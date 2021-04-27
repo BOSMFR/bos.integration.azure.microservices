@@ -113,7 +113,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<PackshotDTO, PackshotEntity>();
             CreateMap<PackshotEntity, PackshotDTO>();
             CreateMap<PackshotEntity, PlytixPackshotRequestDTO>()
-                .ForMember(x => x.PlytixInstance, x => x.MapFrom(x => x.Product.Brand))
+                .ForMember(x => x.Brand, x => x.MapFrom(x => x.Product.Brand))
                 .ForMember(x => x.CollectionCode, x => x.MapFrom(x => x.Product.CollectionCode))
                 .ForMember(x => x.DeliveryWindowCode, x => x.MapFrom(x => x.Product.DeliveryWindowCode));
 

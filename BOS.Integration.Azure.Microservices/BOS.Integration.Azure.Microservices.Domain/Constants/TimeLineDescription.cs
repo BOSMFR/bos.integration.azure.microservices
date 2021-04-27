@@ -53,8 +53,8 @@
         // Plytix
         public const string PlytixSyncSuccessfully = "Synchronized with Plytix successfully. Synchronization made by user: ";
         public const string PlytixSyncError = "Error during synchronization with Plytix. Synchronization made by user: ";
-        public const string PlytixWrongInstance = "Could not find Plytix instance with name - ";
-        public const string PlytixtokenError = "Could not get access token for instance - ";
+        public const string PlytixInstanceError = "Could not find any active Plytix instances";
+        public const string PlytixTokenError = "Could not get access token for instance - ";
         public const string PlytixRequestTimeOut = "TimeOut sending request to Plytix API";
         public const string PlytixDeliveredSuccessfully = "Delivered Successfully to Plytix API";
     }

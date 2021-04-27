@@ -18,6 +18,6 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 
         Task<PlytixSyncResultDTO> SynchronizePlytixOptionsAsync(IEnumerable<string> collectionOptions, IEnumerable<string> deliveryPeriodOptions);
 
-        Task<ActionExecutionResult> UpdatePlytixOptionsAsync(string label, IEnumerable<string> newOptions, List<PlytixInstanceDTO> plytixInstances = null);
+        Task<ActionExecutionResult> UpdatePlytixOptionsAsync(string label, IEnumerable<string> options, PlytixInstanceDTO plytixData = null);
     }
 }

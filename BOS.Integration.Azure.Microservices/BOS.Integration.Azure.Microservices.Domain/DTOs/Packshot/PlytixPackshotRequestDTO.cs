@@ -6,7 +6,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot
     {
         public FileDTO File { get; set; }
 
-        public string PlytixInstance { get; set; }
+        public string Brand { get; set; }
 
         public string CollectionCode { get; set; }
 

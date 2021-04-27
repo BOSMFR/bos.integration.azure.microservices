@@ -4,7 +4,6 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.Plytix;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,22 +22,13 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
         {
         }
 
-        public async Task<List<PlytixInstance>> GetActiveInstancesAsync()
+        public async Task<PlytixInstance> GetActiveInstanceAsync()
         {
             var iterator = _container.GetItemLinqQueryable<Plytix>().ToFeedIterator();
 
             var plytix = (await iterator.ReadNextAsync()).FirstOrDefault();
 
-            return plytix?.PlytixInstances.Where(x => x.Active).ToList();
-        }
-
-        public async Task<PlytixInstance> GetActiveInstanceByNameAsync(string name)
-        {
-            var iterator = _container.GetItemLinqQueryable<Plytix>().ToFeedIterator();
-
-            var plytix = (await iterator.ReadNextAsync()).FirstOrDefault();
-
-            return plytix?.PlytixInstances.FirstOrDefault(x => x.Active && x.Name == name);
+            return plytix?.PlytixInstances?.Where(x => x.Active)?.FirstOrDefault();
         }
     }
 }

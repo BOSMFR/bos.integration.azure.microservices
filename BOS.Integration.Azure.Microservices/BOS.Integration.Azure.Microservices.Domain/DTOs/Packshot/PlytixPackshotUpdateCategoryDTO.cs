@@ -11,6 +11,8 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot
 
         public string PlytixToken { get; set; }
 
+        public string Brand { get; set; }
+
         public string CollectionCode { get; set; }
 
         public string DeliveryWindowCode { get; set; }
