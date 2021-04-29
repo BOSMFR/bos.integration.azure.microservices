@@ -89,7 +89,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 primeCargoGoodsReceival.ReceivalTypeId = GoodsReceivalType.OrderTypeId;
 
                 // Check GoodsReceival document type
-                if (goodsReceivalDTO.DocumentType != GoodsReceivalType.Order)
+                if (goodsReceivalDTO.DocumentTypeText != GoodsReceivalType.Order)
                 {
                     timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorGoodsReceivalType, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 

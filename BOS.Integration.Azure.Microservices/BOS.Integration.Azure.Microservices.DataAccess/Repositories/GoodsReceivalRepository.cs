@@ -10,7 +10,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
     {
         public override string ContainerName { get; } = "product";
 
-        public override string GenerateId(GoodsReceival entity) => entity.No;
+        public override string GenerateId(GoodsReceival entity) => entity.WmsDocumentNo;
 
         public override PartitionKey ResolvePartitionKey(string partitionKey) => new PartitionKey(partitionKey);
 

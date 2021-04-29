@@ -102,13 +102,13 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<GoodsReceivalEntity, GoodsReceivalDTO>();
 
             CreateMap<GoodsReceivalDTO, PrimeCargoGoodsReceivalRequestDTO>()
-                .ForMember(x => x.ReceivalNumber, x => x.MapFrom(x => x.No))
+                .ForMember(x => x.ReceivalNumber, x => x.MapFrom(x => x.WmsDocumentNo))
                 .ForMember(x => x.Lines, x => x.MapFrom(x => x.PurchaseLines));
 
             CreateMap<PurchaseLine, PrimeCargoPurchaseLineRequestDTO>()
-                .ForMember(x => x.ExtReference, x => x.MapFrom(x => x.LineNo))
+                .ForMember(x => x.ExtReference, x => x.MapFrom(x => x.WmsDocumentLineNo))
                 .ForMember(x => x.Qty, x => x.MapFrom(x => x.QtyToReceive))
-                .ForMember(x => x.ProductId, x => x.MapFrom(x => MapPurchaseLineProductId(x)));
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
 
             CreateMap<PackshotDTO, PackshotEntity>();
             CreateMap<PackshotEntity, PackshotDTO>();
@@ -127,9 +127,6 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<GoodsReceivalLineCreatedDTO, GoodsReceivalLineCreated>();
             CreateMap<GoodsReceivalLineCreated, GoodsReceivalLineCreatedDTO>();
         }
-
-        private int MapPurchaseLineProductId(PurchaseLine purchaseLine) =>
-            int.TryParse(purchaseLine.PurchaseVariant.FirstOrDefault()?.PrimeCargoProductId, out int productId) ? productId : default;
 
         private PrimeCargoProductType? MapPrimeCargoProductType(string wmsProductType) => 
             wmsProductType switch

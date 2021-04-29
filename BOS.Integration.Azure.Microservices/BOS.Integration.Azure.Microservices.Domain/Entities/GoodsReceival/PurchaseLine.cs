@@ -1,18 +1,30 @@
-﻿using System.Collections.Generic;
-
-namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
+﻿namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
 {
     public class PurchaseLine
     {
-        public int LineNo { get; set; }
+        public string WmsDocumentLineNo { get; set; }
 
-        public string No { get; set; }
+        public int OrderLineNo { get; set; }
+
+        public int ReceiveListLineNo { get; set; }
+
+        public int PrimeCargoProductId { get; set; }
+
+        public bool IsAssortment { get; set; }
+
+        public string ItemNo { get; set; }
+
+        public string Sku { get; set; }
+
+        public string Ean { get; set; }
+
+        public string Description { get; set; }
 
         public string LocationCode { get; set; }
 
         public double QtyToReceive { get; set; }
 
-        public double QuantityReceived { get; set; }
+        public int QuantityReceived { get; set; }
 
         public string AssortmentCode { get; set; }
 
@@ -20,10 +32,14 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
 
         public string AssortmentColour { get; set; }
 
-        public string AssortmentColourDescription { get; set; }
-
         public string AssortmentStyle { get; set; }
 
-        public List<PurchaseVariant> PurchaseVariant { get; set; }
+        public string ColourCode { get; set; }
+
+        public string StyleCode { get; set; }
+
+        public string SizeCode { get; set; }
+
+        public string QualityCode { get; set; }
     }
 }

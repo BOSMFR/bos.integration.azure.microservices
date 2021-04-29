@@ -29,7 +29,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 var newGoodsReceival = this.mapper.Map<GoodsReceival>(goodsReceivalDTO);
 
-                var goodsReceival = await repository.GetByIdAsync(newGoodsReceival.No, NavObjectCategory.GoodsReceival);
+                var goodsReceival = await repository.GetByIdAsync(newGoodsReceival.WmsDocumentNo, NavObjectCategory.GoodsReceival);
 
                 if (goodsReceival == null)
                 {
@@ -44,7 +44,8 @@ namespace BOS.Integration.Azure.Microservices.Services
                 else
                 {
                     actionResult.Entity = goodsReceival;
-                    actionResult.Error = $"The GoodsReceival with 'No' = {goodsReceival.No} already exists";
+                    //actionResult.Error = $"The GoodsReceival with 'WmsDocumentNo' = {goodsReceival.WmsDocumentNo} already exists"; // Temporary
+                    //actionResult.Succeeded = true;
                 }
 
                 return actionResult;
