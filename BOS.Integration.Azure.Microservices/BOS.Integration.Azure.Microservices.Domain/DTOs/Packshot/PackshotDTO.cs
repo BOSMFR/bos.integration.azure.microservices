@@ -6,7 +6,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot
 {
     public class PackshotDTO
     {
-        public string AssertType { get; set; }
+        public string AssetType { get; set; }
 
         public string Source { get; set; }
 

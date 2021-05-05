@@ -2,6 +2,7 @@
 {
     public class XmlTemplate
     {
+        // SKU
         public const string ReadSkuBody = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:ean=""urn:microsoft-dynamics-schemas/page/eannoupdate"">
                                                <soapenv:Header/>
                                                <soapenv:Body>
@@ -24,5 +25,18 @@
                                                       </ean:Update>
                                                   </soapenv:Body>
                                               </soapenv:Envelope>";
+
+        // GoodsReceival
+        public const string UpdateGoodsReceivalBody = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:apig=""urn:microsoft-dynamics-schemas/codeunit/ApiGoodsReceival"">
+                                                            <soapenv:Header/>
+                                                            <soapenv:Body>
+                                                              <apig:GoodsReceivalCreated>
+                                                                 <apig:wMSDocumentNo>{0}</apig:wMSDocumentNo>
+                                                                 <apig:wMSDocumentLineNo>{1}</apig:wMSDocumentLineNo>
+                                                                 <apig:wMSGoodsReceivalID>{2}</apig:wMSGoodsReceivalID>
+                                                                 <apig:wMSGoodsReceiva_LineID>{3}</apig:wMSGoodsReceiva_LineID>
+                                                              </apig:GoodsReceivalCreated>
+                                                           </soapenv:Body>
+                                                        </soapenv:Envelope>";
     }
 }

@@ -77,6 +77,12 @@ namespace BOS.Integration.Azure.Microservices.Services
                 log.LogError(errorMessage);
 
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestError + errorMessage, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+                return null;
             }
 
             var responseContent = response.Entity as PrimeCargoResponseContent<PrimeCargoGoodsReceivalResponseDTO>;

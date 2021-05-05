@@ -44,8 +44,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 else
                 {
                     actionResult.Entity = goodsReceival;
-                    //actionResult.Error = $"The GoodsReceival with 'WmsDocumentNo' = {goodsReceival.WmsDocumentNo} already exists"; // Temporary
-                    //actionResult.Succeeded = true;
+                    actionResult.Error = $"The GoodsReceival with 'WmsDocumentNo' = {goodsReceival.WmsDocumentNo} already exists";
                 }
 
                 return actionResult;

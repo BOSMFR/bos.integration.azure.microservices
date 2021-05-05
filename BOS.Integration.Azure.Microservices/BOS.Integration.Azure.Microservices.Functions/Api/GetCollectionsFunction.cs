@@ -33,7 +33,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
             if (result.Collection == null)
             {
-                return new NotFoundObjectResult("Could not find any collections");
+                return new OkObjectResult("Could not find any collections");
             }
 
             result.Logs = await logService.GetLogsByObjectIdAsync(result.Collection.Id);

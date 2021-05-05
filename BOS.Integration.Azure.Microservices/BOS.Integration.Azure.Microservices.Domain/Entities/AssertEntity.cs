@@ -3,10 +3,10 @@ using System;
 
 namespace BOS.Integration.Azure.Microservices.Domain.Entities
 {
-    public abstract class AssertEntity : BaseEntity
+    public abstract class AssetEntity : BaseEntity
     {
-        [JsonProperty(PropertyName = "assertType")]
-        public string AssertType { get; set; }
+        [JsonProperty(PropertyName = "assetType")]
+        public string AssetType { get; set; }
 
         public string Created { get; set; }
 

@@ -14,7 +14,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 {
     public class PackshotRepository : CosmosDbRepository<Packshot>, IPackshotRepository
     {
-        public override string ContainerName { get; } = "assert";
+        public override string ContainerName { get; } = "asset";
 
         public override string GenerateId(Packshot entity) => entity.Id;
 

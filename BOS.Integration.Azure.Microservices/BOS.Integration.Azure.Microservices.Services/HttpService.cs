@@ -95,7 +95,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     }
                 }
                 else
-                {
+                {                    
                     result.Error = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
                     this.logger.LogError(result.Error);
 

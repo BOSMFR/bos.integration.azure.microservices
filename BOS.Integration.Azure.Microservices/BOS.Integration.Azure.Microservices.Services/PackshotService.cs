@@ -42,7 +42,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 {
                     newPackshot.ReceivedFromSsis = DateTime.Now;
 
-                    await repository.AddAsync(newPackshot, newPackshot.AssertType);
+                    await repository.AddAsync(newPackshot, newPackshot.AssetType);
 
                     actionResult.Entity = newPackshot;
                     actionResult.Succeeded = true;
@@ -73,7 +73,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             packshot.PlytixPackshot = plytixResponseObject;
 
-            await repository.UpdateAsync(packshot, packshot.AssertType);
+            await repository.UpdateAsync(packshot, packshot.AssetType);
 
             return true;
         }

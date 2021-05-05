@@ -37,6 +37,8 @@
         public const string ErrorGoodsReceivalType = "Error mapping GoodsReceival document type";
         public const string GoodsReceivalCreateMessageSentServiceBus = "GoodsReceival Create Message Sent to Azure Service Bus";
         public const string GoodsReceivalUpdateMessageSentServiceBus = "GoodsReceival Update Message Sent to Azure Service Bus";
+        public const string SuccessfullyUpdatetGoodsReceival = "The GoodsReceival is successfully updated into Nav";
+        public const string ErrorUpdatingGoodsReceival = "Error updating a GoodsReceival into Nav - ";
 
         // Collection
         public const string CollectionPaUpdatedSuccessfully = "Collection product attribute successfully updated into Plytix";

@@ -2,7 +2,7 @@
 
 namespace BOS.Integration.Azure.Microservices.Domain.Entities.Packshot
 {
-    public class Packshot : AssertEntity
+    public class Packshot : AssetEntity
     {
         public string Source { get; set; }
 

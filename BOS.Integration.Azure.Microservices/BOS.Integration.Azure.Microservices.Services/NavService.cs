@@ -1,8 +1,11 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -36,7 +39,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                var getSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, readSkuBody, configuration.NavSettings.SoapAction, 
+                var getSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Sku.Url, readSkuBody, configuration.NavSettings.Sku.SoapAction, 
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
                 if (!getSkuResult.Succeeded)
@@ -45,7 +48,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                string key = this.GetKeyFromXml(getSkuResult.Content);
+                string key = GetKeyFromXml(getSkuResult.Content);
 
                 if (string.IsNullOrEmpty(key))
                 {
@@ -64,7 +67,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Url, updateSkuBody, configuration.NavSettings.SoapAction,
+                var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Sku.Url, updateSkuBody, configuration.NavSettings.Sku.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
                 if (!updateSkuResult.Succeeded)
@@ -83,6 +86,54 @@ namespace BOS.Integration.Azure.Microservices.Services
                 return actionResult;
             }
         }
+
+        public async Task<ActionExecutionResult> UpdateGoodsReceivalIntoNavAsync(ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> primeCargoResponse)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            try
+            {
+                // Select request data from PrimeCargoGoodsReceivalResponse object
+                var requestLines = primeCargoResponse.ResponseObject.Lines.Select(x => new GoodsReceivalNavRequestDTO
+                {
+                    WMSGoodsReceivalId = primeCargoResponse.ResponseObject.GoodsReceivalId ?? default,
+                    WMSDocumentNo = primeCargoResponse.ResponseObject.ReceivalNumber,
+                    WMSGoodsReceivalLineId = x.GoodsReceivalLineId ?? default,
+                    VMSDocumentLineNo = x.ExtReference
+                }).ToList();
+
+                // Update GoodsReceival purchase lines
+                foreach (var requestLine in requestLines)
+                {
+                    string updateGoodsReceivalBody = GetXmlBody(requestLine);
+
+                    if (string.IsNullOrEmpty(updateGoodsReceivalBody))
+                    {
+                        actionResult.Error = "Could not read xml template";
+                        return actionResult;
+                    }
+
+                    var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.GoodsReceival.Url, updateGoodsReceivalBody, configuration.NavSettings.GoodsReceival.SoapAction,
+                                                                                configuration.NavSettings.UserName, configuration.NavSettings.Password);
+
+                    if (!updateSkuResult.Succeeded)
+                    {
+                        actionResult.Error = $"Could not update a GoodsReceival line with id {requestLine.WMSGoodsReceivalLineId}";
+                        return actionResult;
+                    }
+                }
+
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+        
 
         private string GetKeyFromXml(string xmlResponse)
         {
@@ -136,6 +187,18 @@ namespace BOS.Integration.Azure.Microservices.Services
             try
             {
                 return string.Format(XmlTemplate.ReadSkuBody, eanNo);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private string GetXmlBody(GoodsReceivalNavRequestDTO requestLine)
+        {
+            try
+            {
+                return string.Format(XmlTemplate.UpdateGoodsReceivalBody, requestLine.WMSDocumentNo, requestLine.VMSDocumentLineNo, requestLine.WMSGoodsReceivalId, requestLine.WMSGoodsReceivalLineId);
             }
             catch
             {

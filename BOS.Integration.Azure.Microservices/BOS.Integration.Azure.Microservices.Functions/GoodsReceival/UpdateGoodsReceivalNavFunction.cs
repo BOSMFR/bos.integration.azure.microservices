@@ -2,7 +2,6 @@ using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -23,6 +22,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
             this.logService = logService;
         }
 
+        [FixedDelayRetry(3, "00:05:00")]
         [FunctionName("UpdateGoodsReceivalNavFunction")]
         public async Task Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-goods-receival-response", "azure-sub-prime-cargo-goods-receival-response-nav", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
@@ -31,24 +31,23 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 log.LogInformation("UpdateGoodsReceivalNav function recieved the message from the topic");
 
                 var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
-                var primeCargoResponse = messageObject?.ResponseObject;
 
                 ActionExecutionResult result = null;
 
-                // ToDo: Call Nav service to update object into Nav
-
+                if (messageObject?.ResponseObject != null)
+                {
+                    result = await this.navService.UpdateGoodsReceivalIntoNavAsync(messageObject);
+                }
 
                 if (result == null || !result.Succeeded)
-
                 {
                     string errorMessage = string.IsNullOrEmpty(result?.Error) ? "Could not update the GoodsReceival into Nav" : result.Error;
 
-                    //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingERP + errorMessage, TimeLineStatus.Error); Temporary !!!
-                    //throw new Exception(errorMessage);
+                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingGoodsReceival + errorMessage, TimeLineStatus.Error);
+                    throw new Exception(errorMessage);
                 }
 
-                //await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully); Temporary !!!
-
+                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.SuccessfullyUpdatetGoodsReceival, TimeLineStatus.Successfully);
             }
             catch (Exception ex)
             {

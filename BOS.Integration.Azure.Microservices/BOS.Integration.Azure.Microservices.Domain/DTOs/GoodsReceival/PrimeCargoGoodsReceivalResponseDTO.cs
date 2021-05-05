@@ -4,7 +4,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival
 {
     public class PrimeCargoGoodsReceivalResponseDTO
     {
-        public int GoodsReceivalId { get; set; }
+        public int? GoodsReceivalId { get; set; }
 
         public string ReceivalNumber { get; set; }
 
@@ -12,7 +12,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival
 
         public string Eta { get; set; }
 
-        public bool Finished { get; set; }
+        public bool? Finished { get; set; }
 
         public string ReturnPickOrderNumber { get; set; }
 

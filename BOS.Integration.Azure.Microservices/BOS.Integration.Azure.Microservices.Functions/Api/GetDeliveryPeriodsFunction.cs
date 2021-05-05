@@ -33,7 +33,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
             if (result.DeliveryPeriod == null)
             {
-                return new NotFoundObjectResult("Could not find any delivery periods");
+                return new OkObjectResult("Could not find any delivery periods");
             }
 
             result.Logs = await logService.GetLogsByObjectIdAsync(result.DeliveryPeriod.Id);

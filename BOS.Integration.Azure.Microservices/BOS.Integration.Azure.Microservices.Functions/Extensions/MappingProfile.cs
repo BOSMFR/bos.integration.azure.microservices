@@ -86,9 +86,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
                 .ForMember(x => x.Object, x => x.MapFrom(x => x.Category));
 
-            CreateMap<AssertEntity, LogInfo>()
+            CreateMap<AssetEntity, LogInfo>()
                 .ForMember(x => x.ObjectId, x => x.MapFrom(x => x.Id))
-                .ForMember(x => x.Object, x => x.MapFrom(x => x.AssertType))
+                .ForMember(x => x.Object, x => x.MapFrom(x => x.AssetType))
                 .ForMember(x => x.ErpDateTime, x => x.MapFrom(x => x.Created))
                 .ForMember(x => x.ReceivedFromErp, x => x.MapFrom(x => x.ReceivedFromSsis));
 

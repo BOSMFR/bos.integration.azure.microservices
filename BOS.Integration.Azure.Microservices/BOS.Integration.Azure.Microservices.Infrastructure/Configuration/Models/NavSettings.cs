@@ -2,12 +2,12 @@
 {
     public class NavSettings
     {
-        public string Url { get; set; }
-
         public string UserName { get; set; }
 
         public string Password { get; set; }
 
-        public string SoapAction { get; set; }
+        public ErpSettings Sku { get; set; }
+
+        public ErpSettings GoodsReceival { get; set; }
     }
 }
