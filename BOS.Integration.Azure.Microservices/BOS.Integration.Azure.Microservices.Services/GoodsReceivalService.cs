@@ -6,6 +6,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Services
@@ -70,6 +71,14 @@ namespace BOS.Integration.Azure.Microservices.Services
             await repository.UpdateAsync(goodsReceival, goodsReceival.Category);
 
             return true;
+        }
+
+        public async Task<List<GoodsReceival>> GetGoodsReceivalsByFilterAsync(GoodsReceivalFilterDTO goodsReceivalFilter)
+        {
+            goodsReceivalFilter.FromDate ??= DateTime.MinValue;
+            goodsReceivalFilter.ToDate = goodsReceivalFilter.ToDate.HasValue ? goodsReceivalFilter.ToDate.Value.AddDays(1) : DateTime.MaxValue;
+
+            return await this.repository.GetByFilterAsync(goodsReceivalFilter, NavObjectCategory.GoodsReceival);
         }
     }
 }

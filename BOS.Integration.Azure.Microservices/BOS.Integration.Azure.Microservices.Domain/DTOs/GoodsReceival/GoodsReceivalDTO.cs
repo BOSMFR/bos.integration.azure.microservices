@@ -5,7 +5,6 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival
 {
     public class GoodsReceivalDTO
     {
-
         public int DocumentType { get; set; }
 
         public string DocumentTypeText { get; set; }
