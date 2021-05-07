@@ -205,9 +205,9 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                 var content = await this.httpService.PostAsync<T, PrimeCargoResponseContent<V>>(url, primeCargoRequestObject, configuration.PrimeCargoSettings.Key, authResponse?.Data?.Token);
 
-                string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message ?? content.Error;
+                string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message;
 
-                if (!content.Success && !string.IsNullOrEmpty(errorMessage))
+                if (!content.Success)
                 {
                     actionResult.Error = errorMessage;
                     return actionResult;

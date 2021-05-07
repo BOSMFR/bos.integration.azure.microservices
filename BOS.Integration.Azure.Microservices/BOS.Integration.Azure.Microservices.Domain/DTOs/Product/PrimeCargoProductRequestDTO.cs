@@ -7,7 +7,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Product
     public class PrimeCargoProductRequestDTO
     {
         private const int PartNumberMaxLength = 20;
-        private const int VariantMaxLength = 25;
+        private const int VariantMaxLength = 20;
         private const int DescriptionMaxLength = 50;
         private const int BarcodeLength = 13;
 

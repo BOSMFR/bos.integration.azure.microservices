@@ -17,7 +17,6 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Webhooks;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
-using System.Linq;
 using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod.DeliveryPeriod;
 using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
 using NoosEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Noos.Noos;
@@ -29,6 +28,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
 {
     public class MappingProfile : Profile
     {
+        private const int VariantMaxLength = 20;
+
         public MappingProfile()
         {
             CreateMap<ProductDTO, ProductEntity>();
@@ -58,22 +59,22 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
                 .ForMember(x => x.TypeId, x => x.MapFrom(x => MapPrimeCargoProductType(x.WmsProductType)))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId))
-                .ForMember(x => x.Variant1, x => x.MapFrom(x => (x.Colour.Code + " " + x.Colour.Description).Trim()))
-                .ForMember(x => x.Variant2, x => x.MapFrom(x => x.Size.Code))
-                .ForMember(x => x.Variant3, x => x.MapFrom(x => x.Style.Code))
-                .ForMember(x => x.Variant4, x => x.MapFrom(x => (x.Assortment.Code + " " + x.Assortment.Description).Trim()))
-                .ForMember(x => x.Variant5, x => x.MapFrom(x => x.Sku));
+                .ForMember(x => x.Variant1, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Colour.Code + " " + x.Colour.Description)))
+                .ForMember(x => x.Variant2, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Size.Code)))
+                .ForMember(x => x.Variant3, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Style.Code)))
+                .ForMember(x => x.Variant4, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Assortment.Code + " " + x.Assortment.Description)))
+                .ForMember(x => x.Variant5, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Sku)));
 
             CreateMap<ProductEntity, PrimeCargoProductRequestDTO>()
                 .ForMember(x => x.Barcode, x => x.MapFrom(x => x.EanNo))
                 .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
                 .ForMember(x => x.TypeId, x => x.MapFrom(x => MapPrimeCargoProductType(x.WmsProductType)))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId))
-                .ForMember(x => x.Variant1, x => x.MapFrom(x => (x.Colour.Code + " " + x.Colour.Description).Trim()))
-                .ForMember(x => x.Variant2, x => x.MapFrom(x => x.Size.Code))
-                .ForMember(x => x.Variant3, x => x.MapFrom(x => x.Style.Code))
-                .ForMember(x => x.Variant4, x => x.MapFrom(x => (x.Assortment.Code + " " + x.Assortment.Description).Trim()))
-                .ForMember(x => x.Variant5, x => x.MapFrom(x => x.Sku));
+                .ForMember(x => x.Variant1, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Colour.Code + " " + x.Colour.Description)))
+                .ForMember(x => x.Variant2, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Size.Code)))
+                .ForMember(x => x.Variant3, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Style.Code)))
+                .ForMember(x => x.Variant4, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Assortment.Code + " " + x.Assortment.Description)))
+                .ForMember(x => x.Variant5, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Sku)));
 
             CreateMap<PrimeCargoResponseContent<PrimeCargoProductResponseData>, PrimeCargoProductResponseDTO>()
                 .ForMember(x => x.EnaNo, x => x.MapFrom(x => x.Data.Barcode))
@@ -135,5 +136,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 "B" => PrimeCargoProductType.B,
                 _ => null,
             };
+
+        private string MapPrimeCargoProductVariant(string variant) => variant.Length > VariantMaxLength ?  variant.Substring(0, VariantMaxLength).Trim() : variant;
     }
 }
