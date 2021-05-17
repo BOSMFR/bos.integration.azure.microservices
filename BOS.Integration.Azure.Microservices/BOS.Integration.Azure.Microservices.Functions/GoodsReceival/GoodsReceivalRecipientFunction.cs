@@ -2,7 +2,6 @@ using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
 using Microsoft.Azure.ServiceBus;
@@ -62,7 +61,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 if (!createResponse.Succeeded && goodsReceival == null)
                 {
                     log.LogError(createResponse.Error);
-                    return null;                    
+                    return null;
                 }
 
                 // Create an erp message and time line

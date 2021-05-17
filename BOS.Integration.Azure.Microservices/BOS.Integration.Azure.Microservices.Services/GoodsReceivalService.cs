@@ -80,5 +80,26 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             return await this.repository.GetByFilterAsync(goodsReceivalFilter, NavObjectCategory.GoodsReceival);
         }
+
+        public Task<GoodsReceival> GetGoodsReceivalByIdAsync(string id)
+        {
+            return repository.GetByIdAsync(id, NavObjectCategory.GoodsReceival);
+        }
+
+        public async Task<bool> SetGoodsReceivalClosedAsync(GoodsReceival goodsReceival)
+        {
+            try
+            {
+                goodsReceival.IsClosed = true;
+
+                await repository.UpdateAsync(goodsReceival, goodsReceival.Category);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }            
+        }
     }
 }

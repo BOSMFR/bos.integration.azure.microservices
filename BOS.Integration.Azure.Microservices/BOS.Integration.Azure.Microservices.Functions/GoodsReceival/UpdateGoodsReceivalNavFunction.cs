@@ -36,7 +36,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 
                 if (messageObject?.ResponseObject != null)
                 {
-                    result = await this.navService.UpdateGoodsReceivalIntoNavAsync(messageObject);
+                    result = await this.navService.UpdateGoodsReceivalIntoNavAsync(messageObject.ResponseObject);
                 }
 
                 if (result == null || !result.Succeeded)
@@ -47,7 +47,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                     throw new Exception(errorMessage);
                 }
 
-                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.SuccessfullyUpdatetGoodsReceival, TimeLineStatus.Successfully);
+                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.SuccessfullyUpdatedGoodsReceival, TimeLineStatus.Successfully);
             }
             catch (Exception ex)
             {

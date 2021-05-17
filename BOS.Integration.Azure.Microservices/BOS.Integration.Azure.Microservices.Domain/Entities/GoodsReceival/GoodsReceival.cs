@@ -21,6 +21,8 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
 
         public string ErpRecordEvent { get; set; }
 
+        public bool IsClosed { get; set; }
+
         public List<PurchaseLine> PurchaseLines { get; set; }
 
         public PrimeCargoGoodsReceivalResponseDTO PrimeCargoData { get; set; }

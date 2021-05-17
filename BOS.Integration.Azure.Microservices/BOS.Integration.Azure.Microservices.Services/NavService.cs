@@ -1,11 +1,10 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
-using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -17,7 +16,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         private readonly IHttpService httpService;
 
         public NavService(
-            IConfigurationManager configuration, 
+            IConfigurationManager configuration,
             IHttpService httpService)
         {
             this.configuration = configuration;
@@ -39,7 +38,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
-                var getSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Sku.Url, readSkuBody, configuration.NavSettings.Sku.SoapAction, 
+                var getSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Sku.Url, readSkuBody, configuration.NavSettings.Sku.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
                 if (!getSkuResult.Succeeded)
@@ -87,40 +86,27 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<ActionExecutionResult> UpdateGoodsReceivalIntoNavAsync(ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> primeCargoResponse)
+        public async Task<ActionExecutionResult> UpdateGoodsReceivalIntoNavAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponse)
         {
             var actionResult = new ActionExecutionResult();
 
             try
-            {
-                // Select request data from PrimeCargoGoodsReceivalResponse object
-                var requestLines = primeCargoResponse.ResponseObject.Lines.Select(x => new GoodsReceivalNavRequestDTO
+            { 
+                string updateGoodsReceivalBody = GetXmlBody(primeCargoResponse);
+
+                if (string.IsNullOrEmpty(updateGoodsReceivalBody))
                 {
-                    WMSGoodsReceivalId = primeCargoResponse.ResponseObject.GoodsReceivalId ?? default,
-                    WMSDocumentNo = primeCargoResponse.ResponseObject.ReceivalNumber,
-                    WMSGoodsReceivalLineId = x.GoodsReceivalLineId ?? default,
-                    VMSDocumentLineNo = x.ExtReference
-                }).ToList();
+                    actionResult.Error = "Could not generate an xml template";
+                    return actionResult;
+                }
 
-                // Update GoodsReceival purchase lines
-                foreach (var requestLine in requestLines)
+                var updateGoodsReceivalResult = await this.httpService.PostSoapAsync(configuration.NavSettings.GoodsReceival.Url, updateGoodsReceivalBody, configuration.NavSettings.GoodsReceival.SoapAction,
+                                                                            configuration.NavSettings.UserName, configuration.NavSettings.Password);
+
+                if (!updateGoodsReceivalResult.Succeeded)
                 {
-                    string updateGoodsReceivalBody = GetXmlBody(requestLine);
-
-                    if (string.IsNullOrEmpty(updateGoodsReceivalBody))
-                    {
-                        actionResult.Error = "Could not read xml template";
-                        return actionResult;
-                    }
-
-                    var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.GoodsReceival.Url, updateGoodsReceivalBody, configuration.NavSettings.GoodsReceival.SoapAction,
-                                                                                configuration.NavSettings.UserName, configuration.NavSettings.Password);
-
-                    if (!updateSkuResult.Succeeded)
-                    {
-                        actionResult.Error = $"Could not update a GoodsReceival line with id {requestLine.WMSGoodsReceivalLineId}";
-                        return actionResult;
-                    }
+                    actionResult.Error = $"Could not update a GoodsReceival with id {primeCargoResponse.GoodsReceivalId}";
+                    return actionResult;
                 }
 
                 actionResult.Succeeded = true;
@@ -133,7 +119,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 return actionResult;
             }
         }
-        
+
 
         private string GetKeyFromXml(string xmlResponse)
         {
@@ -194,11 +180,13 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        private string GetXmlBody(GoodsReceivalNavRequestDTO requestLine)
+        private string GetXmlBody(PrimeCargoGoodsReceivalResponseDTO primeCargoResponse)
         {
             try
             {
-                return string.Format(XmlTemplate.UpdateGoodsReceivalBody, requestLine.WMSDocumentNo, requestLine.VMSDocumentLineNo, requestLine.WMSGoodsReceivalId, requestLine.WMSGoodsReceivalLineId);
+                string xmlContent = XmlHelper.ConvertItemToXmlString(primeCargoResponse);
+
+                return string.IsNullOrEmpty(xmlContent) ? null : string.Format(XmlTemplate.UpdateGoodsReceivalBody, xmlContent);
             }
             catch
             {

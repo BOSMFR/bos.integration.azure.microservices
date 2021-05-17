@@ -1,5 +1,4 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
-using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using System.Threading.Tasks;
 
@@ -9,6 +8,6 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<ActionExecutionResult> UpdateSkuIntoNavAsync(string eanNo, string productId);
 
-        Task<ActionExecutionResult> UpdateGoodsReceivalIntoNavAsync(ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> primeCargoResponse);
+        Task<ActionExecutionResult> UpdateGoodsReceivalIntoNavAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponse);
     }
 }

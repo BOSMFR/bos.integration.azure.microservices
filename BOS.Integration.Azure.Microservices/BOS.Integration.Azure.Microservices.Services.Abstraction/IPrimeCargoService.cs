@@ -1,4 +1,5 @@
-﻿using BOS.Integration.Azure.Microservices.Domain.Enums;
+﻿using BOS.Integration.Azure.Microservices.Domain;
+using BOS.Integration.Azure.Microservices.Domain.Enums;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -10,5 +11,7 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
         Task<Message> CreateOrUpdatePrimeCargoProductAsync(string mySbMsg, ILogger log, ActionType actionType);
 
         Task<Message> CreateOrUpdatePrimeCargoGoodsReceivalAsync(string mySbMsg, ILogger log, ActionType actionType);
+
+        Task<ActionExecutionResult> GetPrimeCargoGoodsReceivalByIdAsync(string id);
     }
 }

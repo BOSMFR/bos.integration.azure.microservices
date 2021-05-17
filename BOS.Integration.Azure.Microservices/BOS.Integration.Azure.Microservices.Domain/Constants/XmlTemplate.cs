@@ -27,15 +27,14 @@
                                               </soapenv:Envelope>";
 
         // GoodsReceival
-        public const string UpdateGoodsReceivalBody = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:apig=""urn:microsoft-dynamics-schemas/codeunit/ApiGoodsReceival"">
-                                                            <soapenv:Header/>
-                                                            <soapenv:Body>
-                                                              <apig:GoodsReceivalCreated>
-                                                                 <apig:wMSDocumentNo>{0}</apig:wMSDocumentNo>
-                                                                 <apig:wMSDocumentLineNo>{1}</apig:wMSDocumentLineNo>
-                                                                 <apig:wMSGoodsReceivalID>{2}</apig:wMSGoodsReceivalID>
-                                                                 <apig:wMSGoodsReceiva_LineID>{3}</apig:wMSGoodsReceiva_LineID>
-                                                              </apig:GoodsReceivalCreated>
+        public const string UpdateGoodsReceivalBody = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:apig=""urn:microsoft-dynamics-schemas/codeunit/APIGoodsReceival"" xmlns:x50=""urn:microsoft-dynamics-nav/xmlports/x50006"">
+                                                           <soapenv:Header/>
+                                                           <soapenv:Body>
+                                                              <apig:ImportGoodReceiveXMLFile>
+                                                                 <apig:xMLFile>
+                                                        			{0}
+                                                        		</apig:xMLFile>
+                                                              </apig:ImportGoodReceiveXMLFile>
                                                            </soapenv:Body>
                                                         </soapenv:Envelope>";
     }

@@ -62,7 +62,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             // Use prime cargo API to process the object
             string goodsReceivalUrl = configuration.PrimeCargoSettings.Url + "GoodsReceival/CreateGoodsReceival";
 
-            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.RequestObject);
+            var response = await this.CallPrimeCargoPostEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.RequestObject);
 
             if (response.Succeeded)
             {
@@ -130,7 +130,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             // Use prime cargo API to process the object
             string productUrl = configuration.PrimeCargoSettings.Url + "Product/" + (actionType == ActionType.Create ? "CreateProduct" : "UpdateProduct");
 
-            var response = await this.CallPrimeCargoEndpointAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseData>(productUrl, messageObject.RequestObject);
+            var response = await this.CallPrimeCargoPostEndpointAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseData>(productUrl, messageObject.RequestObject);
 
             if (response.Succeeded)
             {
@@ -186,7 +186,14 @@ namespace BOS.Integration.Azure.Microservices.Services
             return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
         }
 
-        private async Task<ActionExecutionResult> CallPrimeCargoEndpointAsync<T, V>(string url, T primeCargoRequestObject)
+        public async Task<ActionExecutionResult> GetPrimeCargoGoodsReceivalByIdAsync(string id)
+        {
+            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceival?id=" + id;
+
+            return await this.CallPrimeCargoGetEndpointAsync<PrimeCargoGoodsReceivalResponseDTO>(url);
+        }
+
+        private async Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject)
         {
             var actionResult = new ActionExecutionResult();
 
@@ -204,6 +211,45 @@ namespace BOS.Integration.Azure.Microservices.Services
                 var authResponse = await this.httpService.GetAsync<PrimeCargoAuthResponseDTO>(authUrl, configuration.PrimeCargoSettings.Key, authBody: authBody);
 
                 var content = await this.httpService.PostAsync<T, PrimeCargoResponseContent<V>>(url, primeCargoRequestObject, configuration.PrimeCargoSettings.Key, authResponse?.Data?.Token);
+
+                string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message;
+
+                if (!content.Success)
+                {
+                    actionResult.Error = errorMessage;
+                    return actionResult;
+                }
+
+                actionResult.Entity = content;
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        private async Task<ActionExecutionResult> CallPrimeCargoGetEndpointAsync<T>(string url)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            try
+            {
+                string authUrl = configuration.PrimeCargoSettings.Url + "Auth";
+
+                var authBody = new PrimeCargoAuthRequestDTO
+                {
+                    OwnerCode = configuration.PrimeCargoSettings.OwnerCode,
+                    UserName = configuration.PrimeCargoSettings.UserName,
+                    Password = configuration.PrimeCargoSettings.Password
+                };
+
+                var authResponse = await this.httpService.GetAsync<PrimeCargoAuthResponseDTO>(authUrl, configuration.PrimeCargoSettings.Key, authBody: authBody);
+
+                var content = await this.httpService.GetAsync<PrimeCargoResponseContent<T>>(url, configuration.PrimeCargoSettings.Key, authResponse?.Data?.Token);
 
                 string errorMessage = content.ProcessingDetails?.FirstOrDefault()?.Message;
 

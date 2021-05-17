@@ -95,11 +95,15 @@ namespace BOS.Integration.Azure.Microservices.Services
                     }
                 }
                 else
-                {                    
-                    result.Error = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
-                    this.logger.LogError(result.Error);
+                {
+                    using (StreamReader stream = new StreamReader(response.Content.ReadAsStreamAsync().Result))
+                    {
+                        result.Content = stream.ReadToEnd();
+                        result.Error = $"Failed to post by the URL: {url}" + Environment.NewLine + $"Body: {xmlBody}";
+                        this.logger.LogError(result.Error);
 
-                    return result;
+                        return result;
+                    }                   
                 }
             }
         }
@@ -145,7 +149,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<V> PatchAsync<T, V>(string url, T dataParams,  string token = null)
+        public async Task<V> PatchAsync<T, V>(string url, T dataParams, string token = null)
             where V : HttpResponse, new()
         {
             using (var client = new HttpClient())
