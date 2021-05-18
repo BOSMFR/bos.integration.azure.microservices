@@ -193,6 +193,13 @@ namespace BOS.Integration.Azure.Microservices.Services
             return await this.CallPrimeCargoGetEndpointAsync<PrimeCargoGoodsReceivalResponseDTO>(url);
         }
 
+        public async Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate)
+        {
+            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate;
+
+            return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoGoodsReceivalResponseDTO>>(url);
+        }
+
         private async Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject)
         {
             var actionResult = new ActionExecutionResult();

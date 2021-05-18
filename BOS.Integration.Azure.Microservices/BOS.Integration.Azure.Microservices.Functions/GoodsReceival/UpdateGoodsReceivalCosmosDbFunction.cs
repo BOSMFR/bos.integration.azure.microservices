@@ -37,7 +37,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 }
                 else
                 {
-                    log.LogError("Could not update the GoodsReceival in Cosmos DB");
+                    log.LogError($"Could not update the GoodsReceival in Cosmos DB. The GoodsReceival with id = \"{messageObject.ResponseObject.ReceivalNumber}\" does not exist.");
                 }
             }
             catch (Exception ex)

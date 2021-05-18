@@ -28,7 +28,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 
         [FixedDelayRetry(5, "00:05:00")]
         [FunctionName("NavSetGoodsReceivalClosedFunction")]
-        public async Task Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-goods-receival-closed", "azure-sub-prime-cargo-wms-goods-receival-closed", Connection = "serviceBus")] string mySbMsg, ILogger log)
+        public async Task Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-goods-receival-update", "azure-sub-prime-cargo-wms-goods-receival-update", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
             try
             {

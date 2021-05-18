@@ -41,7 +41,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
 
         [FixedDelayRetry(5, "00:05:00")]
         [FunctionName("GoodsReceivalClosedFunction")]
-        [return: ServiceBus("azure-topic-prime-cargo-wms-goods-receival-closed", Connection = "serviceBus")]
+        [return: ServiceBus("azure-topic-prime-cargo-wms-goods-receival-update", Connection = "serviceBus")]
         public async Task<Message> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "GoodsReceivalClosed")] HttpRequest req,
             ILogger log)
@@ -97,7 +97,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
             }
             else
             {
-                log.LogError("Could not update the GoodsReceival in Cosmos DB");
+                log.LogError($"Could not update the GoodsReceival in Cosmos DB. The GoodsReceival with id = \"{requestObject.Data.ReceivalNumber}\" does not exist.");
+                return null;
             }
 
             // Create a topic message
