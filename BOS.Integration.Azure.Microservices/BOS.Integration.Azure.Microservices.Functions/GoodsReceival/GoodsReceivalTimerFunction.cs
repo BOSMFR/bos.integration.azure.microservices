@@ -1,12 +1,18 @@
+using AutoMapper;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
 
 namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 {
@@ -14,16 +20,27 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
     {
         private readonly IPrimeCargoService primeCargoService;
         private readonly IGoodsReceivalService goodsReceivalService;
+        private readonly IServiceBusService serviceBusService;
+        private readonly ILogService logService;
+        private readonly IMapper mapper;
 
-        public GoodsReceivalTimerFunction(IPrimeCargoService primeCargoService, IGoodsReceivalService goodsReceivalService)
+        public GoodsReceivalTimerFunction(
+            IPrimeCargoService primeCargoService,
+            IServiceBusService serviceBusService,
+            IGoodsReceivalService goodsReceivalService,
+            ILogService logService,
+            IMapper mapper)
         {
             this.primeCargoService = primeCargoService;
+            this.serviceBusService = serviceBusService;
             this.goodsReceivalService = goodsReceivalService;
+            this.logService = logService;
+            this.mapper = mapper;
         }
 
         [FixedDelayRetry(5, "00:05:00")]
         [FunctionName("GoodsReceivalTimerFunction")]
-        public async Task<List<Message>> Run([TimerTrigger("0 0 1 * * *")] TimerInfo myTimer, ILogger log)
+        public async Task Run([TimerTrigger("0 0 1 * * *")] TimerInfo myTimer, ILogger log)
         {
             try
             {
@@ -31,39 +48,74 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 
                 List<Message> messages = new List<Message>();
 
-                // Get goods receivals from Prime Cargo
-                var result = await primeCargoService.GetGoodsReceivalsByLastUpdateAsync(DateTime.Now);
+                var lastUpdate = DateTime.Now;
+                bool hasMoreData;
 
-                var content = result.Entity as PrimeCargoResponseContent<List<PrimeCargoGoodsReceivalResponseDTO>>;
-
-                if (!result.Succeeded || content == null)
+                do
                 {
-                    string error = result.Error ?? "Could not get GoodsReceivals from PrimeCargo";
+                    // Get goods receivals from Prime Cargo
+                    var result = await primeCargoService.GetGoodsReceivalsByLastUpdateAsync(lastUpdate);
 
-                    log.LogError(error);
-                    throw new Exception(error);
-                }
+                    var content = result.Entity as PrimeCargoResponseContent<List<PrimeCargoGoodsReceivalResponseDTO>>;
 
-                foreach (var primeCargoGoodsReceival in content.Data)
-                {
-                    // Update goods receival in Cosmos DB            
-                    bool isSucceeded = await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(primeCargoGoodsReceival);
-
-                    if (isSucceeded)
+                    if (!result.Succeeded || content == null)
                     {
-                        log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
-                    }
-                    else
-                    {
-                        log.LogError($"Could not update the GoodsReceival in Cosmos DB. The GoodsReceival with id = \"{primeCargoGoodsReceival.ReceivalNumber}\" does not exist.");
-                        return null;
+                        string error = result.Error ?? "Could not get GoodsReceivals from PrimeCargo";
+
+                        log.LogError(error);
+                        throw new Exception(error);
                     }
 
-                    // Generate message add to response list
-                    // ToDo
-                }
+                    foreach (var primeCargoGoodsReceival in content.Data)
+                    {
+                        // Get goods receival from Cosmos DB
+                        var goodsReceival = await goodsReceivalService.GetGoodsReceivalByIdAsync(primeCargoGoodsReceival.ReceivalNumber);
 
-                return null; // return messages; // Temporary
+                        if (goodsReceival == null)
+                        {
+                            var createResult = await goodsReceivalService.CreateGoodsReceivalFromPrimeCargoInfoAsync(primeCargoGoodsReceival);
+
+                            goodsReceival = createResult.Entity as GoodsReceivalEntity;
+
+                            if (!createResult.Succeeded || goodsReceival == null)
+                            {
+                                log.LogError(createResult.Error);
+                            }
+                            else
+                            {
+                                LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
+
+                                string message = $"The Goods Receival with ReceivalNumber = {goodsReceival.WmsDocumentNo} has not exist yet. A dummy Goods Receival was created in Cosmos DB.";
+
+                                await this.logService.AddTimeLineAsync(erpInfo, message, TimeLineStatus.Error);
+                            }
+                        }
+                        else
+                        {
+                            LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
+
+                            await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.SuccessfullyReceivedGoodsReceival, TimeLineStatus.Information);
+
+                            // Update goods receival in Cosmos DB         
+                            await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(primeCargoGoodsReceival, goodsReceival);
+
+                            log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
+
+                            // Create a topic message
+                            var messageBody = new RequestMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = erpInfo, RequestObject = primeCargoGoodsReceival };
+
+                            messages.Add(serviceBusService.CreateMessage(JsonConvert.SerializeObject(messageBody)));
+                        }                        
+                    }
+
+                    hasMoreData = content.MoreData.HasValue && content.NextFilterValue.HasValue && content.MoreData.Value;
+                    lastUpdate = content.NextFilterValue ?? lastUpdate;
+                } while (hasMoreData);
+
+                if (messages.Count > 0)
+                {
+                    await this.serviceBusService.SendMessagesToTopicAsync("azure-topic-prime-cargo-wms-goods-receival-update", messages);
+                }
             }
             catch (Exception ex)
             {

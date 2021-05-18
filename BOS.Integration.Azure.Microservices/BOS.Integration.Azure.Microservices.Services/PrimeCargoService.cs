@@ -9,6 +9,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -195,7 +196,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
         public async Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate)
         {
-            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate;
+            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate.ToString(DateHelper.PrimeCargoDateFormat);
 
             return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoGoodsReceivalResponseDTO>>(url);
         }

@@ -10,7 +10,9 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<ActionExecutionResult> CreateGoodsReceivalAsync(GoodsReceivalDTO goodsReceivalDTO);
 
-        Task<bool> UpdateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject);
+        Task<ActionExecutionResult> CreateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject);
+
+        Task<bool> UpdateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject, GoodsReceival goodsReceival = null);
 
         Task<List<GoodsReceival>> GetGoodsReceivalsByFilterAsync(GoodsReceivalFilterDTO goodsReceivalFilter);
 

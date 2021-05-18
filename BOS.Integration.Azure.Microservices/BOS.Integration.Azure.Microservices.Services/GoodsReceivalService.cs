@@ -57,9 +57,37 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<bool> UpdateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject)
+        public async Task<ActionExecutionResult> CreateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject)
         {
-            var goodsReceival = await repository.GetByIdAsync(primeCargoResponseObject.ReceivalNumber, NavObjectCategory.GoodsReceival);
+            var actionResult = new ActionExecutionResult();
+
+            try
+            {
+                var newGoodsReceival = new GoodsReceival();
+
+                newGoodsReceival.PrimeCargoData = primeCargoResponseObject;
+                newGoodsReceival.WmsDocumentNo = newGoodsReceival.PrimeCargoData.ReceivalNumber;
+
+                newGoodsReceival.Category = NavObjectCategory.GoodsReceival;
+                newGoodsReceival.ReceivedFromErp = DateTime.Now;
+
+                await repository.AddAsync(newGoodsReceival, newGoodsReceival.Category);
+
+                actionResult.Entity = newGoodsReceival;
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        public async Task<bool> UpdateGoodsReceivalFromPrimeCargoInfoAsync(PrimeCargoGoodsReceivalResponseDTO primeCargoResponseObject, GoodsReceival goodsReceival = null)
+        {
+            goodsReceival ??= await repository.GetByIdAsync(primeCargoResponseObject.ReceivalNumber, NavObjectCategory.GoodsReceival);
 
             if (goodsReceival == null)
             {

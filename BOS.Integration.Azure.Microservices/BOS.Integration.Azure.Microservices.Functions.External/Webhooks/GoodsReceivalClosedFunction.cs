@@ -69,7 +69,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
                 return null;
             }
 
-            LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);            
+            LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
 
             // Get goods receival from Prime Cargo
             var result = await primeCargoService.GetPrimeCargoGoodsReceivalByIdAsync(goodsReceivalClosedDTO.GoodsReceivalId.ToString());
@@ -89,17 +89,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
             await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.SuccessfullyReceivedGoodsReceival, TimeLineStatus.Information);
 
             // Update goods receival in Cosmos DB            
-            bool isSucceeded = await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(requestObject.Data);
+            await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(requestObject.Data, goodsReceival);
 
-            if (isSucceeded)
-            {
-                log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
-            }
-            else
-            {
-                log.LogError($"Could not update the GoodsReceival in Cosmos DB. The GoodsReceival with id = \"{requestObject.Data.ReceivalNumber}\" does not exist.");
-                return null;
-            }
+            log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
 
             // Create a topic message
             var messageBody = new RequestMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = erpInfo, RequestObject = requestObject.Data };
