@@ -15,6 +15,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
+
 namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
 {
     public class GoodsReceivalClosedFunction
@@ -58,18 +60,34 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
                 return null;
             }
 
+            LogInfo erpInfo;
+
             // Get goods receival from Cosmos DB
             var goodsReceival = await goodsReceivalService.GetGoodsReceivalByIdAsync(goodsReceivalClosedDTO.ReceivalNumber);
 
             if (goodsReceival == null)
             {
-                string error = $"Could not find a GoodsReceival with Id = {goodsReceivalClosedDTO.ReceivalNumber} into Cosmos DB";
+                var createResult = await goodsReceivalService.CreateGoodsReceivalFromPrimeCargoInfoAsync(new PrimeCargoGoodsReceivalResponseDTO { ReceivalNumber = goodsReceivalClosedDTO.ReceivalNumber, GoodsReceivalId = goodsReceivalClosedDTO.GoodsReceivalId });
 
-                log.LogError(error);
+                goodsReceival = createResult.Entity as GoodsReceivalEntity;
+
+                if (!createResult.Succeeded || goodsReceival == null)
+                {
+                    log.LogError(createResult.Error);
+                }
+                else
+                {
+                    erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
+
+                    string message = $"The Goods Receival with ReceivalNumber = {goodsReceival.WmsDocumentNo} has not exist yet. A dummy Goods Receival was created in Cosmos DB.";
+
+                    await this.logService.AddTimeLineAsync(erpInfo, message, TimeLineStatus.Error);
+                }
+
                 return null;
             }
 
-            LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
+            erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
 
             // Get goods receival from Prime Cargo
             var result = await primeCargoService.GetPrimeCargoGoodsReceivalByIdAsync(goodsReceivalClosedDTO.GoodsReceivalId.ToString());
