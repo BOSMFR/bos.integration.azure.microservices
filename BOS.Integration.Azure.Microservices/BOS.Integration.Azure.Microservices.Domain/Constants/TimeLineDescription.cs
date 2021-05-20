@@ -44,6 +44,18 @@
         public const string SuccessfullyClosedGoodsReceival = "The GoodsReceival is successfully closed into Nav";
         public const string ErrorClosingGoodsReceival = "Error closing a GoodsReceival into Nav - ";
 
+        // PickOrder
+        public const string ErrorCreatingPickOrder = "Error creating a PickOrder - ";
+        public const string ErrorValidationPickOrder = "PickOrder validation error - ";
+        public const string PickOrderCreateMessageSentServiceBus = "PickOrder Create Message Sent to Azure Service Bus";
+        public const string PickOrderUpdateMessageSentServiceBus = "PickOrder Update Message Sent to Azure Service Bus";
+        public const string SuccessfullyUpdatedPickOrder = "The PickOrder is successfully updated into Nav";
+        public const string ErrorUpdatingPickOrder = "Error updating a PickOrder into Nav - ";
+        public const string SuccessfullyReceivedPickOrder = "The PickOrder is successfully received from Prime Cargo";
+        public const string ErrorGettingPickOrder = "Error getting a PickOrder from Prime Cargo - ";
+        public const string SuccessfullyClosedPickOrder = "The PickOrder is successfully closed into Nav";
+        public const string ErrorClosingPickOrder = "Error closing a PickOrder into Nav - ";
+
         // Collection
         public const string CollectionPaUpdatedSuccessfully = "Collection product attribute successfully updated into Plytix";
         public const string CollectionPaUpdateError = "Error during updating Collection product attribute into Plytix - ";

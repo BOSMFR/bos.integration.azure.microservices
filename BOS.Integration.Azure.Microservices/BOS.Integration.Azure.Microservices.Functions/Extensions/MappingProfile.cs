@@ -5,6 +5,7 @@ using BOS.Integration.Azure.Microservices.Domain.DTOs.DeliveryPeriod;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Noos;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Packshot;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Webhooks;
@@ -14,6 +15,7 @@ using BOS.Integration.Azure.Microservices.Domain.Entities.DeliveryPeriod;
 using BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Noos;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Packshot;
+using BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Shopify;
 using BOS.Integration.Azure.Microservices.Domain.Entities.Webhooks;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
@@ -21,8 +23,8 @@ using DeliveryPeriodEntity = BOS.Integration.Azure.Microservices.Domain.Entities
 using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
 using NoosEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Noos.Noos;
 using PackshotEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Packshot.Packshot;
+using PickOrderEntity = BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder.PickOrder;
 using ProductEntity = BOS.Integration.Azure.Microservices.Domain.Entities.Product.Product;
-
 
 namespace BOS.Integration.Azure.Microservices.Functions.Extensions
 {
@@ -110,6 +112,25 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ExtReference, x => x.MapFrom(x => x.WmsDocumentLineNo))
                 .ForMember(x => x.Qty, x => x.MapFrom(x => x.QtyToReceive))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
+
+            CreateMap<PickOrderDTO, PickOrderEntity>();
+            CreateMap<PickOrderEntity, PickOrderDTO>();
+
+            CreateMap<PickOrderDTO, PrimeCargoPickOrderRequestDTO>()
+                .ForMember(x => x.CountryId, x => x.MapFrom(x => int.Parse(x.CountryIsoCode)))
+                .ForMember(x => x.ShippingProductId, x => x.MapFrom(x => int.Parse(x.ShippingProductId)))
+                .ForMember(x => x.CustomerId1, x => x.MapFrom(x => x.CustomerID1))
+                .ForMember(x => x.CustomerId2, x => x.MapFrom(x => x.CustomerID2))
+                .ForMember(x => x.CustomerId3, x => x.MapFrom(x => x.CustomerID3))
+                .ForMember(x => x.Lcid, x => x.MapFrom(x => x.LcId))
+                .ForMember(x => x.Lines, x => x.MapFrom(x => x.SalesLines));
+
+            CreateMap<SalesLine, PrimeCargoSalesLineDTO>()
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => int.Parse(x.ProductId)))
+                .ForMember(x => x.Properties, x => x.MapFrom(x => x.Proporties));
+
+            CreateMap<SalesLineProperty<string>, SalesLineProperty<int>>()
+                .ForMember(x => x.TariffNumber, x => x.MapFrom(x => int.Parse(x.TariffNumber)));
 
             CreateMap<PackshotDTO, PackshotEntity>();
             CreateMap<PackshotEntity, PackshotDTO>();

@@ -46,6 +46,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddTransient<IPlytixService, PlytixService>();
             builder.Services.AddTransient<INavService, NavService>();
             builder.Services.AddTransient<IGoodsReceivalService, GoodsReceivalService>();
+            builder.Services.AddTransient<IPickOrderService, PickOrderService>();
             builder.Services.AddTransient<IPackshotService, PackshotService>();
             builder.Services.AddTransient<IWebhookService, WebhookService>();
             builder.Services.AddTransient<IAssetCategoryService, AssetCategoryService>();
@@ -68,6 +69,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddScoped<IAssetCategoryRepository, AssetCategoryRepository>();
             builder.Services.AddScoped<IPlytixRepository, PlytixRepository>();
             builder.Services.AddScoped<IGoodsReceivalRepository, GoodsReceivalRepository>();
+            builder.Services.AddScoped<IPickOrderRepository, PickOrderRepository>();
             builder.Services.AddScoped<IPackshotRepository, PackshotRepository>();
             builder.Services.AddScoped<IGoodsReceivalClosedRepository, GoodsReceivalClosedRepository>();
             builder.Services.AddScoped<IGoodsReceivalLineCreatedRepository, GoodsReceivalLineCreatedRepository>();

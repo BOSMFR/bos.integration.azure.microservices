@@ -6,6 +6,7 @@
         public const string Collection = "collection";
         public const string DeliveryPeriod = "delivery_period";
         public const string GoodsReceival = "goods_receival";
+        public const string PickOrder = "pick_order";
         public const string Noos = "noos";
         public const string Item = "item";
         public const string Style = "style";
