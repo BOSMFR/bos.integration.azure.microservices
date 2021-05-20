@@ -119,6 +119,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<PickOrderDTO, PrimeCargoPickOrderRequestDTO>()
                 .ForMember(x => x.CountryId, x => x.MapFrom(x => int.Parse(x.CountryIsoCode)))
                 .ForMember(x => x.ShippingProductId, x => x.MapFrom(x => int.Parse(x.ShippingProductId)))
+                .ForMember(x => x.SubOwnerId, x => x.MapFrom(x => int.Parse(x.SubOwnerId)))
+                .ForMember(x => x.SubOwnerAddressId, x => x.MapFrom(x => int.Parse(x.SubOwnerAddressId)))
+                .ForMember(x => x.UsStateId, x => x.MapFrom(x => int.Parse(x.UsStateId)))
                 .ForMember(x => x.CustomerId1, x => x.MapFrom(x => x.CustomerID1))
                 .ForMember(x => x.CustomerId2, x => x.MapFrom(x => x.CustomerID2))
                 .ForMember(x => x.CustomerId3, x => x.MapFrom(x => x.CustomerID3))
@@ -129,8 +132,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => int.Parse(x.ProductId)))
                 .ForMember(x => x.Properties, x => x.MapFrom(x => x.Proporties));
 
-            CreateMap<SalesLineProperty<string>, SalesLineProperty<int>>()
-                .ForMember(x => x.TariffNumber, x => x.MapFrom(x => int.Parse(x.TariffNumber)));
+            CreateMap<SalesLineProperty<string>, SalesLineProperty<long>>()
+                .ForMember(x => x.TariffNumber, x => x.MapFrom(x => long.Parse(x.TariffNumber)));
 
             CreateMap<PackshotDTO, PackshotEntity>();
             CreateMap<PackshotEntity, PackshotDTO>();

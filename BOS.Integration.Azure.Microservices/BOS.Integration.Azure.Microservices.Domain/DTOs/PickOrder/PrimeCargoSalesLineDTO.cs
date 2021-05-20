@@ -16,6 +16,6 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
 
         public string CustomerId2 { get; set; }
 
-        public SalesLineProperty<int> Properties { get; set; }
+        public SalesLineProperty<long> Properties { get; set; }
     }
 }
