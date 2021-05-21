@@ -66,7 +66,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
 
                 // Create an erp message and time line
                 LogInfo erpInfo = this.mapper.Map<LogInfo>(pickOrder);
-                //await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp); // Temp
+                await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
 
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
@@ -75,7 +75,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                     timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingPickOrder + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
                     // Write time lines to database
-                    //await this.logService.AddTimeLinesAsync(erpInfo, timeLines);  // Temp
+                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                     log.LogError(createResponse.Error);
                     return null;
@@ -89,7 +89,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                     messages.ForEach(m => timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder + m, Status = TimeLineStatus.Error, DateTime = DateTime.Now }));
 
                     // Write time lines to database
-                    //await this.logService.AddTimeLinesAsync(erpInfo, timeLines);  // Temp
+                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                     log.LogError("Validation error");
                     return null;
@@ -101,7 +101,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 
                 // Write time lines to database
-                //await this.logService.AddTimeLinesAsync(erpInfo, timeLines);  // Temp
+                await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                 // Create a topic message
                 var messageBody = new RequestMessage<PrimeCargoPickOrderRequestDTO> { ErpInfo = erpInfo, RequestObject = primeCargoPickOrder };

@@ -4,6 +4,7 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Auth;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
@@ -43,74 +44,6 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<Message> CreateOrUpdatePrimeCargoGoodsReceivalAsync(string mySbMsg, ILogger log, ActionType actionType)
-        {
-            var erpMessageStatuses = new List<string>();
-            var timeLines = new List<TimeLineDTO>();
-
-            // Deserialize prime cargo goods receival from the message
-            var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoGoodsReceivalRequestDTO>>(mySbMsg);
-
-            erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
-
-            timeLines.Add(new TimeLineDTO
-            {
-                Description = actionType == ActionType.Create ? TimeLineDescription.GoodsReceivalCreateMessageSentServiceBus : TimeLineDescription.GoodsReceivalUpdateMessageSentServiceBus,
-                Status = TimeLineStatus.Information,
-                DateTime = DateTime.Now
-            });
-
-            // Use prime cargo API to process the object
-            string goodsReceivalUrl = configuration.PrimeCargoSettings.Url + "GoodsReceival/CreateGoodsReceival";
-
-            var response = await this.CallPrimeCargoPostEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.RequestObject);
-
-            if (response.Succeeded)
-            {
-                erpMessageStatuses.Add(ErpMessageStatus.DeliveredSuccessfully);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveredSuccessfullyToPrimeCargo, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
-            }
-            else
-            {
-                string customError = actionType == ActionType.Create ? "Could not create a new object via prime cargo API" : "Could not update the object via prime cargo API";
-
-                string errorMessage = string.IsNullOrEmpty(response.Error) ? customError : response.Error;
-                log.LogError(errorMessage);
-
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestError + errorMessage, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
-
-                // Write erp messages and time lines to database
-                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
-                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
-
-                return null;
-            }
-
-            var responseContent = response.Entity as PrimeCargoResponseContent<PrimeCargoGoodsReceivalResponseDTO>;
-
-            if (responseContent?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
-            {
-                erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
-
-                // Write erp messages and time lines to database
-                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
-                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
-
-                throw new Exception("Request time out");
-            }
-
-            // Write erp messages and time lines to database
-            await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
-            await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
-
-            // Create a topic message
-            var messageBody = new ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = messageObject.ErpInfo, ResponseObject = responseContent?.Data };
-
-            string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
-
-            return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
-        }
 
         public async Task<Message> CreateOrUpdatePrimeCargoProductAsync(string mySbMsg, ILogger log, ActionType actionType)
         {
@@ -185,6 +118,80 @@ namespace BOS.Integration.Azure.Microservices.Services
             string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
 
             return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
+        }
+
+        public async Task<Message> CreateOrUpdatePrimeCargoGoodsReceivalAsync(string mySbMsg, ILogger log, ActionType actionType)
+        {
+            var erpMessageStatuses = new List<string>();
+            var timeLines = new List<TimeLineDTO>();
+
+            // Deserialize prime cargo goods receival from the message
+            var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoGoodsReceivalRequestDTO>>(mySbMsg);
+
+            erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateMessage : ErpMessageStatus.UpdateMessage);
+
+            timeLines.Add(new TimeLineDTO
+            {
+                Description = actionType == ActionType.Create ? TimeLineDescription.GoodsReceivalCreateMessageSentServiceBus : TimeLineDescription.GoodsReceivalUpdateMessageSentServiceBus,
+                Status = TimeLineStatus.Information,
+                DateTime = DateTime.Now
+            });
+
+            // Use prime cargo API to process the object
+            string goodsReceivalUrl = configuration.PrimeCargoSettings.Url + "GoodsReceival/CreateGoodsReceival";
+
+            var response = await this.CallPrimeCargoPostEndpointAsync<PrimeCargoGoodsReceivalRequestDTO, PrimeCargoGoodsReceivalResponseDTO>(goodsReceivalUrl, messageObject.RequestObject);
+
+            if (response.Succeeded)
+            {
+                erpMessageStatuses.Add(ErpMessageStatus.DeliveredSuccessfully);
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveredSuccessfullyToPrimeCargo, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+            }
+            else
+            {
+                string customError = actionType == ActionType.Create ? "Could not create a new object via prime cargo API" : "Could not update the object via prime cargo API";
+
+                string errorMessage = string.IsNullOrEmpty(response.Error) ? customError : response.Error;
+                log.LogError(errorMessage);
+
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestError + errorMessage, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+                return null;
+            }
+
+            var responseContent = response.Entity as PrimeCargoResponseContent<PrimeCargoGoodsReceivalResponseDTO>;
+
+            if (responseContent?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
+            {
+                erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+
+                // Write erp messages and time lines to database
+                await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+                throw new Exception("Request time out");
+            }
+
+            // Write erp messages and time lines to database
+            await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
+            await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
+
+            // Create a topic message
+            var messageBody = new ResponseMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = messageObject.ErpInfo, ResponseObject = responseContent?.Data };
+
+            string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
+
+            return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
+        }
+
+        public async Task<Message> CreateOrUpdatePrimeCargoPickOrderAsync(string mySbMsg, ILogger log, ActionType actionType)
+        {
+            return null;
         }
 
         public async Task<ActionExecutionResult> GetPrimeCargoGoodsReceivalByIdAsync(string id)

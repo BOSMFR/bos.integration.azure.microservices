@@ -13,6 +13,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 
         Task<Message> CreateOrUpdatePrimeCargoGoodsReceivalAsync(string mySbMsg, ILogger log, ActionType actionType);
 
+        Task<Message> CreateOrUpdatePrimeCargoPickOrderAsync(string mySbMsg, ILogger log, ActionType actionType);
+
         Task<ActionExecutionResult> GetPrimeCargoGoodsReceivalByIdAsync(string id);
 
         Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate);
