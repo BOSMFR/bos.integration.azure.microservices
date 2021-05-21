@@ -37,7 +37,13 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                 };
             }
 
-            Expression<Func<PickOrder, bool>> query = g => (g.ReceivedFromErp >= pickOrderFilter.FromDate && g.ReceivedFromErp < pickOrderFilter.ToDate);
+            Expression<Func<PickOrder, bool>> query = g => (g.ReceivedFromErp >= pickOrderFilter.FromDate && g.ReceivedFromErp < pickOrderFilter.ToDate)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.OrderNumber) || g.OrderNumber == pickOrderFilter.OrderNumber)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerNumber) || g.CustomerNumber == pickOrderFilter.CustomerNumber)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId1) || g.CustomerID1 == pickOrderFilter.CustomerId1)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId2) || g.CustomerID2 == pickOrderFilter.CustomerId2)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId3) || g.CustomerID3 == pickOrderFilter.CustomerId3)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.ReceiverName) || g.ReceiverName.Contains(pickOrderFilter.ReceiverName));
 
             var iterator = _container.GetItemLinqQueryable<PickOrder>(requestOptions: requestOptions).Where(query).ToFeedIterator();
 
