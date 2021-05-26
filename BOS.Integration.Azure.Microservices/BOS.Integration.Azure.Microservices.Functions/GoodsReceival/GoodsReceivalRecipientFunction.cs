@@ -68,11 +68,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
                 await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
                  
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 if (!createResponse.Succeeded)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingGoodsReceival + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingGoodsReceival + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
                     
                     // Write time lines to database
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
@@ -90,7 +90,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 // Check GoodsReceival document type
                 if (goodsReceivalDTO.DocumentTypeText != GoodsReceivalType.Order)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorGoodsReceivalType, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorGoodsReceivalType, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     // Write time lines to database
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
@@ -99,7 +99,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                     return null;
                 }
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Write time lines to database
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);

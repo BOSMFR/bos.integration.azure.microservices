@@ -63,11 +63,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.Packshot
                 LogInfo erpInfo = this.mapper.Map<LogInfo>(packshot);
                 await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromSsis);
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.SsisMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.SsisMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 if (!createResponse.Succeeded)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingPackshot + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingPackshot + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     // Write time lines to database
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
@@ -81,12 +81,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.Packshot
                 {
                     if (packshot.Imageformat?.Id != PackshotDefault.ImageFormat)
                     {
-                        timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PackshotWrongImageFormat, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                        timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PackshotWrongImageFormat, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
                     }
 
                     if (string.IsNullOrEmpty(packshot.Product?.Brand))
                     {
-                        timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PackshotBrandMissed, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                        timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PackshotBrandMissed, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
                     }
 
                     // Write time lines to database
@@ -99,7 +99,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Packshot
                 // Map the packshot to the plytix request object
                 var plytixPackshot = this.mapper.Map<PlytixPackshotRequestDTO>(packshot);
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Write time lines to database
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);

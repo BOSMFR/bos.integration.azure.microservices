@@ -34,7 +34,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 var newWebhook = this.mapper.Map<WebhookInfo>(webhookInfoDTO);
 
-                newWebhook.ReceivedAt = DateTime.Now;
+                newWebhook.ReceivedAt = DateTime.UtcNow;
 
                 await webhookRepository.AddAsync(newWebhook, newWebhook.Type);
 

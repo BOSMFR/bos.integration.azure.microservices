@@ -37,7 +37,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
         [FunctionName("SkuTimerFunction")]
         public async Task Run([TimerTrigger("0 0 1 * * *")] TimerInfo myTimer, ILogger log)
         {
-            log.LogInformation($"SkuTimer function executed at: {DateTime.Now}");
+            log.LogInformation($"SkuTimer function executed at: {DateTime.UtcNow}");
 
             var waitingProducts = await productService.GetAllByPrimeCargoIntegrationStateAsync(PrimeCargoIntegrationState.Waiting);
 

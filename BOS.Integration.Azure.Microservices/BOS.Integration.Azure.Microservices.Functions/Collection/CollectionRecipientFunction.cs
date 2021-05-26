@@ -58,7 +58,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Collection
                 var erpInfo = this.mapper.Map<LogInfo>(collection);
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Update plytix options
                 var options = collection.Details.Where(x => x.ShowExternal).Select(x => x.Id);

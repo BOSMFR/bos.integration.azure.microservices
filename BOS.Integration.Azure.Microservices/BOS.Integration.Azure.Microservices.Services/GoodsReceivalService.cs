@@ -35,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (goodsReceival == null)
                 {
                     newGoodsReceival.Category = NavObjectCategory.GoodsReceival;
-                    newGoodsReceival.ReceivedFromErp = DateTime.Now;
+                    newGoodsReceival.ReceivedFromErp = DateTime.UtcNow;
 
                     await repository.AddAsync(newGoodsReceival, newGoodsReceival.Category);
 
@@ -69,7 +69,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newGoodsReceival.WmsDocumentNo = newGoodsReceival.PrimeCargoData.ReceivalNumber;
 
                 newGoodsReceival.Category = NavObjectCategory.GoodsReceival;
-                newGoodsReceival.ReceivedFromErp = DateTime.Now;
+                newGoodsReceival.ReceivedFromErp = DateTime.UtcNow;
 
                 await repository.AddAsync(newGoodsReceival, newGoodsReceival.Category);
 

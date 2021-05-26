@@ -69,11 +69,11 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 var erpInfo = this.mapper.Map<LogInfo>(product);
 
                 erpMessageStatuses.Add(ErpMessageStatus.ReceivedFromErp);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 if (primeCargoIntegrationState == PrimeCargoIntegrationState.Waiting)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PreparingMessageCanceled + productDTO.StartDatePrimeCargoExport, Status = TimeLineStatus.Warning, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PreparingMessageCanceled + productDTO.StartDatePrimeCargoExport, Status = TimeLineStatus.Warning, DateTime = DateTime.UtcNow });
 
                     // Write erp messages and time lines to database
                     await this.logService.AddErpMessagesAsync(erpInfo, erpMessageStatuses);
@@ -110,7 +110,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                     return null;
                 }
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(erpInfo, erpMessageStatuses);

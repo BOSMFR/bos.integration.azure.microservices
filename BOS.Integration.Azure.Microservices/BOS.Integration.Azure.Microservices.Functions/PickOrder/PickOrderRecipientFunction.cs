@@ -73,11 +73,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 LogInfo erpInfo = this.mapper.Map<LogInfo>(pickOrder);
                 await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.ReceivedFromErp);
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 if (!createResponse.Succeeded)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingPickOrder + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorCreatingPickOrder + createResponse.Error, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     // Write time lines to database
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
@@ -89,7 +89,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 // Validate pick order
                 if (!validationService.Validate(pickOrder) || pickOrder.SalesLines.Any(x => !validationService.Validate(x) || !validationService.Validate(x.Properties)))
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     // Write logs to database
                     await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);
@@ -105,7 +105,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
 
                 string testJson = JsonConvert.SerializeObject(primeCargoPickOrder);
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Write time lines to database
                 await this.logService.AddTimeLinesAsync(erpInfo, timeLines);

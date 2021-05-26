@@ -44,11 +44,11 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
         {
             try
             {
-                log.LogInformation($"GoodsReceivalTimer function executed at: {DateTime.Now}");
+                log.LogInformation($"GoodsReceivalTimer function executed at: {DateTime.UtcNow}");
 
                 List<Message> messages = new List<Message>();
 
-                var lastUpdate = DateTime.Now;
+                var lastUpdate = DateTime.UtcNow;
                 bool hasMoreData;
 
                 do

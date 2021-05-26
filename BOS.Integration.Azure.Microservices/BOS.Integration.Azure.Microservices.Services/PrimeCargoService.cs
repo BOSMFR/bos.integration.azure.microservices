@@ -44,7 +44,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 Description = entityName + (actionType == ActionType.Create ? TimeLineDescription.PrimeCargoCreateMessageSentServiceBus : TimeLineDescription.PrimeCargoUpdateMessageSentServiceBus),
                 Status = TimeLineStatus.Information,
-                DateTime = DateTime.Now
+                DateTime = DateTime.UtcNow
             });
 
             // Use prime cargo API to process the object
@@ -55,7 +55,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (response.Succeeded)
             {
                 erpMessageStatuses.Add(ErpMessageStatus.DeliveredSuccessfully);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveredSuccessfullyToPrimeCargo, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.DeliveredSuccessfullyToPrimeCargo, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow });
             }
             else
             {
@@ -64,7 +64,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 string errorMessage = string.IsNullOrEmpty(response.Error) ? customError : response.Error;
                 log.LogError(errorMessage);
 
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestError + errorMessage, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestError + errorMessage, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -78,7 +78,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (responseContent?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.CreateTimeout : ErpMessageStatus.UpdateTimeout);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrimeCargoRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);

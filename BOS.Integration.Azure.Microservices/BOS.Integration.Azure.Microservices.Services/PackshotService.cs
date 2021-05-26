@@ -40,7 +40,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                 if (packshot == null)
                 {
-                    newPackshot.ReceivedFromSsis = DateTime.Now;
+                    newPackshot.ReceivedFromSsis = DateTime.UtcNow;
 
                     await repository.AddAsync(newPackshot, newPackshot.AssetType);
 

@@ -71,7 +71,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             {
                 Description = actionType == ActionType.Create ? TimeLineDescription.PackshotCreateMessageSentServiceBus : TimeLineDescription.PackshotUpdateMessageSentServiceBus,
                 Status = TimeLineStatus.Information,
-                DateTime = DateTime.Now
+                DateTime = DateTime.UtcNow
             });
 
             // Decode file url
@@ -84,7 +84,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (plytixInstance == null)
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.ErrorCreatePackshot : ErpMessageStatus.ErrorUpdatePackshot);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixInstanceError, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixInstanceError, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 log.LogError(TimeLineDescription.PlytixInstanceError);
 
@@ -109,7 +109,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (string.IsNullOrEmpty(token))
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.ErrorCreatePackshot : ErpMessageStatus.ErrorUpdatePackshot);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixTokenError + plytixInstance.Name, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixTokenError + plytixInstance.Name, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 log.LogError(TimeLineDescription.PlytixTokenError + plytixInstance.Name);
 
@@ -129,7 +129,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (response?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
             {
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.PlytixCreateTimeout : ErpMessageStatus.PlytixUpdateTimeout);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -147,7 +147,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 error += responseError.Error.Msg;
 
                 erpMessageStatuses.Add(actionType == ActionType.Create ? ErpMessageStatus.ErrorCreatePackshot : ErpMessageStatus.ErrorUpdatePackshot);
-                timeLines.Add(new TimeLineDTO { Description = error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = error, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 log.LogError(error);
 
@@ -159,7 +159,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
 
             erpMessageStatuses.Add(ErpMessageStatus.PlytixDeliveredSuccessfully);
-            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixDeliveredSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixDeliveredSuccessfully, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow });
 
             // Write erp messages and time lines to database
             await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -197,7 +197,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (response?.StatusCode == Convert.ToInt32(HttpStatusCode.RequestTimeout).ToString())
             {
                 erpMessageStatuses.Add(ErpMessageStatus.PlytixUpdateTimeout);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PlytixRequestTimeOut, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 // Write erp messages and time lines to database
                 await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -213,7 +213,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 string error = TimeLineDescription.ErrorUpdatePackshotCategoryPlytix + responseError.Message;
 
                 erpMessageStatuses.Add(ErpMessageStatus.ErrorUpdatedPackshotCategory);
-                timeLines.Add(new TimeLineDTO { Description = error, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = error, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                 log.LogError(error);
 
@@ -225,7 +225,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
 
             erpMessageStatuses.Add(ErpMessageStatus.SuccessfullyUpdatedPackshotCategory);
-            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.SuccsessUpdatePackshotCategoryPlytix, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.SuccsessUpdatePackshotCategoryPlytix, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow });
 
             // Write erp messages and time lines to database
             await this.logService.AddErpMessagesAsync(messageObject.ErpInfo, erpMessageStatuses);
@@ -302,13 +302,13 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (updateProductAttributeResponse.Succeeded)
                 {
                     string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodPaUpdatedSuccessfully;
-                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow });
                 }
                 else
                 {
                     string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionPaUpdateError : TimeLineDescription.DeliveryPeriodPaUpdateError;
                     description += updateProductAttributeResponse.Error;
-                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
                 }
 
                 // Synchronize asset categories in the storage with Plytix
@@ -332,13 +332,13 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (updateAssetCategoryResponse.Succeeded)
                 {
                     string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdatedSuccessfully : TimeLineDescription.DeliveryPeriodAcUpdatedSuccessfully;
-                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow });
                 }
                 else
                 {
                     string description = label == NavObjectCategory.Collection ? TimeLineDescription.CollectionAcUpdateError : TimeLineDescription.DeliveryPeriodAcUpdateError;
                     description += updateAssetCategoryResponse.Error;
-                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
+                    timeLines.Add(new TimeLineDTO { Description = description, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     actionResult.Error = updateAssetCategoryResponse.Error;
                     actionResult.Entity = timeLines;

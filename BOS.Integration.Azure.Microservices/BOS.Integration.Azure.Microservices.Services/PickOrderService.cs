@@ -35,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (pickOrder == null)
                 {
                     newPickOrder.Category = NavObjectCategory.PickOrder;
-                    newPickOrder.ReceivedFromErp = DateTime.Now;
+                    newPickOrder.ReceivedFromErp = DateTime.UtcNow;
 
                     await repository.AddAsync(newPickOrder, newPickOrder.Category);
 
@@ -69,7 +69,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newPickOrder.OrderNumber = newPickOrder.PrimeCargoData.OrderNumber;
 
                 newPickOrder.Category = NavObjectCategory.PickOrder;
-                newPickOrder.ReceivedFromErp = DateTime.Now;
+                newPickOrder.ReceivedFromErp = DateTime.UtcNow;
 
                 await repository.AddAsync(newPickOrder, newPickOrder.Category);
 

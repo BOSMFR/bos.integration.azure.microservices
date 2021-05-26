@@ -40,7 +40,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (product == null)
             {
                 newProduct.Category = NavObjectCategory.Sku;
-                newProduct.ReceivedFromErp = DateTime.Now;
+                newProduct.ReceivedFromErp = DateTime.UtcNow;
 
                 newProduct.PrimeCargoIntegration = new PrimeCargoIntegration { Delivered = false, State = primeCargoIntegrationState };
 

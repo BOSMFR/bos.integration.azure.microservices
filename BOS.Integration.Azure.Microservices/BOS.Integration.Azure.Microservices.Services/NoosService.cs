@@ -29,7 +29,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (noos == null)
             {
                 newNoos.Category = NavObjectCategory.Noos;
-                newNoos.ReceivedFromErp = DateTime.Now;
+                newNoos.ReceivedFromErp = DateTime.UtcNow;
 
                 await repository.AddAsync(newNoos, newNoos.Category);
             }

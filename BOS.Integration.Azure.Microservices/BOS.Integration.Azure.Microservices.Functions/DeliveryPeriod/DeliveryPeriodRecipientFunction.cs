@@ -58,7 +58,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
                 var erpInfo = this.mapper.Map<LogInfo>(deliveryPeriod);
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Update plytix options
                 var options = deliveryPeriod.Details.Where(x => x.Active).Select(x => x.Id);

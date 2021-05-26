@@ -53,7 +53,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Noos
                 var erpInfo = this.mapper.Map<LogInfo>(noos);
 
                 erpMessages.Add(ErpMessageStatus.ReceivedFromErp);
-                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
+                timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErpMessageReceived, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 
                 // Write time lines to database
                 await this.logService.AddErpMessagesAsync(erpInfo, erpMessages);

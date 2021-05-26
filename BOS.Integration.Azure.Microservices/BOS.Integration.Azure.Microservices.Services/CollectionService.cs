@@ -35,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (collection == null)
             {
                 newCollection.Category = NavObjectCategory.Collection;
-                newCollection.ReceivedFromErp = DateTime.Now;
+                newCollection.ReceivedFromErp = DateTime.UtcNow;
 
                 await repository.AddAsync(newCollection, newCollection.Category);
             }

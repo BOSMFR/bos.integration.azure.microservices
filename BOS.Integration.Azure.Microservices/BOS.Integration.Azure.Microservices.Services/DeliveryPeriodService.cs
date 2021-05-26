@@ -35,7 +35,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             if (deliveryPeriod == null)
             {
                 newDeliveryPeriod.Category = NavObjectCategory.DeliveryPeriod;
-                newDeliveryPeriod.ReceivedFromErp = DateTime.Now;
+                newDeliveryPeriod.ReceivedFromErp = DateTime.UtcNow;
 
                 await repository.AddAsync(newDeliveryPeriod, newDeliveryPeriod.Category);
             }

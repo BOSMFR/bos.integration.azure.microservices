@@ -100,13 +100,13 @@ namespace BOS.Integration.Azure.Microservices.Functions.Api
 
             if (result.GeneralResult.Succeeded)
             {
-                var successSyncTimeLine = new TimeLineDTO { Description = TimeLineDescription.PlytixSyncSuccessfully + syncRequestDto.UserName, Status = TimeLineStatus.Successfully, DateTime = DateTime.Now };
+                var successSyncTimeLine = new TimeLineDTO { Description = TimeLineDescription.PlytixSyncSuccessfully + syncRequestDto.UserName, Status = TimeLineStatus.Successfully, DateTime = DateTime.UtcNow };
                 collectionTimeLines.Add(successSyncTimeLine);
                 deliveryPeriodTimeLines.Add(successSyncTimeLine);
             }
             else
             {
-                var errorSyncTimeLine = new TimeLineDTO { Description = TimeLineDescription.PlytixSyncError + syncRequestDto.UserName, Status = TimeLineStatus.Error, DateTime = DateTime.Now };
+                var errorSyncTimeLine = new TimeLineDTO { Description = TimeLineDescription.PlytixSyncError + syncRequestDto.UserName, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow };
                 collectionTimeLines.Add(errorSyncTimeLine);
                 deliveryPeriodTimeLines.Add(errorSyncTimeLine);
             }

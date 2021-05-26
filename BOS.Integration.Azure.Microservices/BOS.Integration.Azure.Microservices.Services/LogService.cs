@@ -71,7 +71,7 @@ namespace BOS.Integration.Azure.Microservices.Services
         {
             var newTimeLine = this.mapper.Map<TimeLine>(erpInfo);
 
-            newTimeLine.DateTime = DateTime.Now;
+            newTimeLine.DateTime = DateTime.UtcNow;
             newTimeLine.Description = description;
             newTimeLine.Status = status;
 
