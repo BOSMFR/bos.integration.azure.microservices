@@ -128,9 +128,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
                 .ForMember(x => x.Lcid, x => x.MapFrom(x => x.LcId))
                 .ForMember(x => x.Lines, x => x.MapFrom(x => x.SalesLines));
 
-            CreateMap<SalesLine, PrimeCargoSalesLineDTO>()
-                .ForMember(x => x.ProductId, x => x.MapFrom(x => int.Parse(x.ProductId)))
-                .ForMember(x => x.Properties, x => x.MapFrom(x => x.Proporties));
+            CreateMap<SalesLine, PrimeCargoSalesLineRequestDTO>()
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => int.Parse(x.ProductId)));
 
             CreateMap<SalesLineProperty<string>, SalesLineProperty<long>>()
                 .ForMember(x => x.TariffNumber, x => x.MapFrom(x => long.Parse(x.TariffNumber)));
@@ -145,9 +144,6 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<PlytixPackshotRequestDTO, PlytixPackshotUpdateCategoryDTO>();
 
             CreateMap<File, FileDTO>();
-
-            CreateMap<GoodsReceivalClosedDTO, GoodsReceivalClosed>();
-            CreateMap<GoodsReceivalClosed, GoodsReceivalClosedDTO>();
 
             CreateMap<GoodsReceivalLineCreatedDTO, GoodsReceivalLineCreated>();
             CreateMap<GoodsReceivalLineCreated, GoodsReceivalLineCreatedDTO>();

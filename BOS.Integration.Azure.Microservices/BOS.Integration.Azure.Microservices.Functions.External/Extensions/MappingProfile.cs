@@ -11,8 +11,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Extensions
     {
         public MappingProfile()
         {
-            CreateMap<GoodsReceivalClosedDTO, GoodsReceivalClosed>();
-            CreateMap<GoodsReceivalClosed, GoodsReceivalClosedDTO>();
+            CreateMap<WebhookInfoDTO, WebhookInfo>();
 
             CreateMap<GoodsReceivalLineCreatedDTO, GoodsReceivalLineCreated>();
             CreateMap<GoodsReceivalLineCreated, GoodsReceivalLineCreatedDTO>();

@@ -3,12 +3,14 @@ using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using PickOrderEntity = BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder.PickOrder;
@@ -19,6 +21,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
     {
         private readonly IPickOrderService pickOrderService;
         private readonly IServiceBusService serviceBusService;
+        private readonly IValidationService validationService;
         private readonly IBlobService blobService;
         private readonly ILogService logService;
         private readonly IMapper mapper;
@@ -26,12 +29,14 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
         public PickOrderRecipientFunction(
             IPickOrderService pickOrderService,
             IServiceBusService serviceBusService,
+            IValidationService validationService,
             IBlobService blobService,
             IMapper mapper,
             ILogService logService)
         {
             this.pickOrderService = pickOrderService;
             this.serviceBusService = serviceBusService;
+            this.validationService = validationService;
             this.blobService = blobService;
             this.logService = logService;
             this.mapper = mapper;
@@ -82,21 +87,23 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 }
 
                 // Validate pick order
-                var messages = pickOrderService.ValidatePickOrder(pickOrder);
-
-                if (messages.Count > 0)
+                if (!validationService.Validate(pickOrder) || pickOrder.SalesLines.Any(x => !validationService.Validate(x) || !validationService.Validate(x.Properties)))
                 {
-                    messages.ForEach(m => timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder + m, Status = TimeLineStatus.Error, DateTime = DateTime.Now }));
+                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder, Status = TimeLineStatus.Error, DateTime = DateTime.Now });
 
-                    // Write time lines to database
+                    // Write logs to database
+                    await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);
                     await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
 
                     log.LogError("Validation error");
                     return null;
-                }
+                }                
 
                 // Map the pick order to the prime cargo request object
                 var primeCargoPickOrder = this.mapper.Map<PrimeCargoPickOrderRequestDTO>(pickOrderDTO);
+                primeCargoPickOrder.ShipDate = DateHelper.ConvertErpDateToPrimeCargoDate(pickOrderDTO.ShipDate);
+
+                string testJson = JsonConvert.SerializeObject(primeCargoPickOrder);
 
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.Now });
 

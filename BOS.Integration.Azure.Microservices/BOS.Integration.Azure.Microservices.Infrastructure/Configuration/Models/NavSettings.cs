@@ -9,5 +9,7 @@
         public ErpSettings Sku { get; set; }
 
         public ErpSettings GoodsReceival { get; set; }
+
+        public ErpSettings PickOrder { get; set; }
     }
 }

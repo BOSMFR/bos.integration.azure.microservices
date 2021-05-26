@@ -57,20 +57,48 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public List<string> ValidatePickOrder(PickOrder pickOrder)
+        public async Task<ActionExecutionResult> CreatePickOrderFromPrimeCargoInfoAsync(PrimeCargoPickOrderResponseDTO primeCargoResponseObject)
         {
-            string intCustError = " property must be an integer value";
+            var actionResult = new ActionExecutionResult();
 
-            var validationErrorMessages = new List<string>();
-
-            if (!int.TryParse(pickOrder.ShippingProductId, out int _))
+            try
             {
-                validationErrorMessages.Add("ShippingProductId" + intCustError);
+                var newPickOrder = new PickOrder();
+
+                newPickOrder.PrimeCargoData = primeCargoResponseObject;
+                newPickOrder.OrderNumber = newPickOrder.PrimeCargoData.OrderNumber;
+
+                newPickOrder.Category = NavObjectCategory.PickOrder;
+                newPickOrder.ReceivedFromErp = DateTime.Now;
+
+                await repository.AddAsync(newPickOrder, newPickOrder.Category);
+
+                actionResult.Entity = newPickOrder;
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        public async Task<bool> UpdatePickOrderFromPrimeCargoInfoAsync(PrimeCargoPickOrderResponseDTO primeCargoResponseObject, PickOrder pickOrder = null)
+        {
+            pickOrder ??= await repository.GetByIdAsync(primeCargoResponseObject.OrderNumber, NavObjectCategory.PickOrder);
+
+            if (pickOrder == null)
+            {
+                return false;
             }
 
-            // ToDo: Add validation for PickingInstruction
+            pickOrder.PrimeCargoData = primeCargoResponseObject;
 
-            return validationErrorMessages;
+            await repository.UpdateAsync(pickOrder, pickOrder.Category);
+
+            return true;
         }
 
         public async Task<List<PickOrder>> GetPickOrdersByFilterAsync(PickOrderFilterDTO pickOrderFilter)

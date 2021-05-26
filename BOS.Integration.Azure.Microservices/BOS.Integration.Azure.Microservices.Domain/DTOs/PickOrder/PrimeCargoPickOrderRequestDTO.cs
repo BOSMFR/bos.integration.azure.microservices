@@ -80,6 +80,6 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
 
         public string BuyerState { get; set; }
 
-        public List<PrimeCargoSalesLineDTO> Lines { get; set; }
+        public List<PrimeCargoSalesLineRequestDTO> Lines { get; set; }
     }
 }

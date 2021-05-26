@@ -27,16 +27,16 @@
         public const string ErrorUpdatePackshotCategoryPlytix = "Error during updating Packshot categories into Plytix - ";
         public const string SuccsessUpdatePackshotCategoryPlytix = "Packshot categories successfully updated into Plytix";
 
+        // PrimeCargo
+        public const string PrimeCargoCreateMessageSentServiceBus = " Create Message Sent to Azure Service Bus";
+        public const string PrimeCargoUpdateMessageSentServiceBus = " Update Message Sent to Azure Service Bus";
+
         // Sku
         public const string PreparingMessageCanceled = "Preparing message canceled - startDatePrimeCargoExport set to ";
-        public const string ProductCreateMessageSentServiceBus = "Product Create Message Sent to Azure Service Bus";
-        public const string ProductUpdateMessageSentServiceBus = "Product Update Message Sent to Azure Service Bus";
 
         // GoodsReceival
         public const string ErrorCreatingGoodsReceival = "Error creating a GoodsReceival - ";
         public const string ErrorGoodsReceivalType = "Error mapping GoodsReceival document type";
-        public const string GoodsReceivalCreateMessageSentServiceBus = "GoodsReceival Create Message Sent to Azure Service Bus";
-        public const string GoodsReceivalUpdateMessageSentServiceBus = "GoodsReceival Update Message Sent to Azure Service Bus";
         public const string SuccessfullyUpdatedGoodsReceival = "The GoodsReceival is successfully updated into Nav";
         public const string ErrorUpdatingGoodsReceival = "Error updating a GoodsReceival into Nav - ";
         public const string SuccessfullyReceivedGoodsReceival = "The GoodsReceival is successfully received from Prime Cargo";
@@ -46,9 +46,7 @@
 
         // PickOrder
         public const string ErrorCreatingPickOrder = "Error creating a PickOrder - ";
-        public const string ErrorValidationPickOrder = "PickOrder validation error - ";
-        public const string PickOrderCreateMessageSentServiceBus = "PickOrder Create Message Sent to Azure Service Bus";
-        public const string PickOrderUpdateMessageSentServiceBus = "PickOrder Update Message Sent to Azure Service Bus";
+        public const string ErrorValidationPickOrder = "PickOrder validation error";
         public const string SuccessfullyUpdatedPickOrder = "The PickOrder is successfully updated into Nav";
         public const string ErrorUpdatingPickOrder = "Error updating a PickOrder into Nav - ";
         public const string SuccessfullyReceivedPickOrder = "The PickOrder is successfully received from Prime Cargo";

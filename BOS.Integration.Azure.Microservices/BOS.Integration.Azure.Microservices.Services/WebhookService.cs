@@ -13,17 +13,40 @@ namespace BOS.Integration.Azure.Microservices.Services
     public class WebhookService : IWebhookService
     {
         private readonly IGoodsReceivalLineCreatedRepository lineCreatedRepository;
-        private readonly IGoodsReceivalClosedRepository closedRepository;
+        private readonly IWebhookRepository webhookRepository;
         private readonly IMapper mapper;
 
         public WebhookService(
-            IGoodsReceivalLineCreatedRepository lineCreatedRepository, 
-            IGoodsReceivalClosedRepository closedRepository, 
+            IGoodsReceivalLineCreatedRepository lineCreatedRepository,
+            IWebhookRepository webhookRepository,
             IMapper mapper)
         {
             this.lineCreatedRepository = lineCreatedRepository;
-            this.closedRepository = closedRepository;
+            this.webhookRepository = webhookRepository;
             this.mapper = mapper;
+        }
+
+        public async Task<ActionExecutionResult> CreateWebhookInfoAsync(WebhookInfoDTO webhookInfoDTO)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            try
+            {
+                var newWebhook = this.mapper.Map<WebhookInfo>(webhookInfoDTO);
+
+                newWebhook.ReceivedAt = DateTime.Now;
+
+                await webhookRepository.AddAsync(newWebhook, newWebhook.Type);
+
+                actionResult.Entity = newWebhook;
+                actionResult.Succeeded = true;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+            }
+
+            return actionResult;
         }
 
         public async Task<ActionExecutionResult> CreateGoodsReceivalLineCreatedAsync(GoodsReceivalLineCreatedDTO lineCreatedDTO)
@@ -37,29 +60,6 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newWebhook.Type = WebhookType.GoodsReceivalLineCreated;
 
                 await lineCreatedRepository.AddAsync(newWebhook, newWebhook.Type);
-
-                actionResult.Entity = newWebhook;
-                actionResult.Succeeded = true;
-            }
-            catch (Exception ex)
-            {
-                actionResult.Error = ex.Message;
-            }
-
-            return actionResult;
-        }
-
-        public async Task<ActionExecutionResult> CreateGoodsReceivalClosedAsync(GoodsReceivalClosedDTO closedDTO)
-        {
-            var actionResult = new ActionExecutionResult();
-
-            try
-            {
-                var newWebhook = this.mapper.Map<GoodsReceivalClosed>(closedDTO);
-
-                newWebhook.Type = WebhookType.GoodsReceivalClosed;
-
-                await closedRepository.AddAsync(newWebhook, newWebhook.Type);
 
                 actionResult.Entity = newWebhook;
                 actionResult.Succeeded = true;

@@ -71,7 +71,6 @@ namespace BOS.Integration.Azure.Microservices.Functions
             builder.Services.AddScoped<IGoodsReceivalRepository, GoodsReceivalRepository>();
             builder.Services.AddScoped<IPickOrderRepository, PickOrderRepository>();
             builder.Services.AddScoped<IPackshotRepository, PackshotRepository>();
-            builder.Services.AddScoped<IGoodsReceivalClosedRepository, GoodsReceivalClosedRepository>();
             builder.Services.AddScoped<IGoodsReceivalLineCreatedRepository, GoodsReceivalLineCreatedRepository>();
 
             this.ConfigureAutoMapper(builder.Services);

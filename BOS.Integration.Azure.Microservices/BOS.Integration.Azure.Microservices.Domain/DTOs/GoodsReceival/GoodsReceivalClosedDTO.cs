@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BOS.Integration.Azure.Microservices.Domain.DTOs.Webhooks
+namespace BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival
 {
     public class GoodsReceivalClosedDTO
     {

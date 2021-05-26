@@ -1,6 +1,7 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
@@ -92,7 +93,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             try
             { 
-                string updateGoodsReceivalBody = GetXmlBody(primeCargoResponse);
+                string updateGoodsReceivalBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdateGoodsReceivalBody);
 
                 if (string.IsNullOrEmpty(updateGoodsReceivalBody))
                 {
@@ -106,6 +107,40 @@ namespace BOS.Integration.Azure.Microservices.Services
                 if (!updateGoodsReceivalResult.Succeeded)
                 {
                     actionResult.Error = $"Could not update a GoodsReceival with id {primeCargoResponse.GoodsReceivalId}";
+                    return actionResult;
+                }
+
+                actionResult.Succeeded = true;
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                actionResult.Error = ex.Message;
+                return actionResult;
+            }
+        }
+
+        public async Task<ActionExecutionResult> UpdatePickOrderIntoNavAsync(PrimeCargoPickOrderResponseDTO primeCargoResponse)
+        {
+            var actionResult = new ActionExecutionResult();
+
+            try
+            {
+                string updatePickOrderBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdatePickOrderBody);
+
+                if (string.IsNullOrEmpty(updatePickOrderBody))
+                {
+                    actionResult.Error = "Could not generate an xml template";
+                    return actionResult;
+                }
+
+                var updatePickOrderResult = await this.httpService.PostSoapAsync(configuration.NavSettings.PickOrder.Url, updatePickOrderBody, configuration.NavSettings.PickOrder.SoapAction,
+                                                                            configuration.NavSettings.UserName, configuration.NavSettings.Password);
+
+                if (!updatePickOrderResult.Succeeded)
+                {
+                    actionResult.Error = $"Could not update a PickOrder with id {primeCargoResponse.OrderNumber}";
                     return actionResult;
                 }
 
@@ -180,13 +215,13 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        private string GetXmlBody(PrimeCargoGoodsReceivalResponseDTO primeCargoResponse)
+        private string GetXmlBody<T>(T primeCargoResponse, string xmlBody)
         {
             try
             {
                 string xmlContent = XmlHelper.ConvertItemToXmlString(primeCargoResponse);
 
-                return string.IsNullOrEmpty(xmlContent) ? null : string.Format(XmlTemplate.UpdateGoodsReceivalBody, xmlContent);
+                return string.IsNullOrEmpty(xmlContent) ? null : string.Format(xmlBody, xmlContent);
             }
             catch
             {

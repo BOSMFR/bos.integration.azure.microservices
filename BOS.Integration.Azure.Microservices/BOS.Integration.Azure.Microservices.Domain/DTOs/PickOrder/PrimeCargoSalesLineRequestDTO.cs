@@ -2,7 +2,7 @@
 
 namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
 {
-    public class PrimeCargoSalesLineDTO
+    public class PrimeCargoSalesLineRequestDTO
     {
         public string ExtReference { get; set; }
 

@@ -1,8 +1,13 @@
+using AutoMapper;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Domain.Enums;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -11,10 +16,17 @@ namespace BOS.Integration.Azure.Microservices.Functions
     public class PrimeCargoProductRequestUpdateFunction
     {
         private readonly IPrimeCargoService primeCargoService;
+        private readonly IServiceBusService serviceBusService;
+        private readonly IMapper mapper;
 
-        public PrimeCargoProductRequestUpdateFunction(IPrimeCargoService primeCargoService)
+        public PrimeCargoProductRequestUpdateFunction(
+            IPrimeCargoService primeCargoService,
+            IServiceBusService serviceBusService,
+            IMapper mapper)
         {
             this.primeCargoService = primeCargoService;
+            this.serviceBusService = serviceBusService;
+            this.mapper = mapper;
         }
 
         [FixedDelayRetry(3, "00:05:00")]
@@ -26,7 +38,27 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("PrimeCargoProductRequestUpdate function recieved the message from the topic");
 
-                return await this.primeCargoService.CreateOrUpdatePrimeCargoProductAsync(mySbMsg, log, ActionType.Update);
+                // Deserialize prime cargo request object from the message
+                var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoProductRequestDTO>>(mySbMsg);
+
+                // Use PrimeCargo API to update a Product
+                var response = await this.primeCargoService.CreateOrUpdatePrimeCargoObjectAsync<PrimeCargoProductRequestDTO, PrimeCargoProductResponseData>(messageObject, log, NavObject.Product, ActionType.Update);
+
+                // Map PrimeCargo response to Product response object
+                var primeCargoResponse = response != null ? this.mapper.Map<PrimeCargoProductResponseDTO>(response) : new PrimeCargoProductResponseDTO
+                {
+                    EnaNo = messageObject.RequestObject.Barcode,
+                    Success = false
+                };
+
+                primeCargoResponse.ErpjobId = messageObject.RequestObject.ErpjobId;
+
+                // Create a topic message
+                var messageBody = new ResponseMessage<PrimeCargoProductResponseDTO> { ErpInfo = messageObject.ErpInfo, ResponseObject = primeCargoResponse };
+
+                string primeCargoProductResponseJson = JsonConvert.SerializeObject(messageBody);
+
+                return this.serviceBusService.CreateMessage(primeCargoProductResponseJson);
             }
             catch (Exception ex)
             {

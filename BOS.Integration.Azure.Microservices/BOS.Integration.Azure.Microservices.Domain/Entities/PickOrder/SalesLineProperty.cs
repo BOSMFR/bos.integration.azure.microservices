@@ -1,4 +1,6 @@
-﻿namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
+﻿using BOS.Integration.Azure.Microservices.Domain.ValidationAttributes;
+
+namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
 {
     public class SalesLineProperty<T>
     {
@@ -24,6 +26,7 @@
 
         public string MeasureCode { get; set; }
 
+        [IsInteger64Validation]
         public T TariffNumber { get; set; }
 
         public double NetWeight { get; set; }

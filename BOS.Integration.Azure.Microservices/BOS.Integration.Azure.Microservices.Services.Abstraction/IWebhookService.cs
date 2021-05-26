@@ -6,8 +6,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface IWebhookService
     {
-        Task<ActionExecutionResult> CreateGoodsReceivalLineCreatedAsync(GoodsReceivalLineCreatedDTO lineCreatedDTO);
+        Task<ActionExecutionResult> CreateWebhookInfoAsync(WebhookInfoDTO webhookInfoDTO);
 
-        Task<ActionExecutionResult> CreateGoodsReceivalClosedAsync(GoodsReceivalClosedDTO closedDTO);
+        Task<ActionExecutionResult> CreateGoodsReceivalLineCreatedAsync(GoodsReceivalLineCreatedDTO lineCreatedDTO);
     }
 }

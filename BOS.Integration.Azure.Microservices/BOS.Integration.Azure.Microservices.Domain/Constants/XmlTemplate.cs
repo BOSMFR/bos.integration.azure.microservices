@@ -37,5 +37,17 @@
                                                               </apig:ImportGoodReceiveXMLFile>
                                                            </soapenv:Body>
                                                         </soapenv:Envelope>";
+
+        // PickOrder
+        public const string UpdatePickOrderBody = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:apig=""urn:microsoft-dynamics-schemas/codeunit/APIGoodsPick"" xmlns:x50=""urn:microsoft-dynamics-nav/xmlports/x50007"">
+                                                           <soapenv:Header/>
+                                                           <soapenv:Body>
+                                                              <apig:ImportPickingListXMLFile>
+                                                                 <apig:xMLFile>
+                                                        			{0}
+                                                        		</apig:xMLFile>
+                                                              <apig:ImportPickingListXMLFile>
+                                                           </soapenv:Body>
+                                                        </soapenv:Envelope>";
     }
 }

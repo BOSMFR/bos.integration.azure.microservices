@@ -38,6 +38,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.External
             builder.Services.AddTransient<IHttpService, HttpService>();
             builder.Services.AddTransient<ILogService, LogService>();
             builder.Services.AddTransient<IGoodsReceivalService, GoodsReceivalService>();
+            builder.Services.AddTransient<IPickOrderService, PickOrderService>();
 
             CosmosDbSettings cosmosDbConfig = configuration.GetSection("CosmosDbConfig").Get<CosmosDbSettings>();
 
@@ -47,9 +48,10 @@ namespace BOS.Integration.Azure.Microservices.Functions.External
                                           cosmosDbConfig.Containers);
             
             builder.Services.AddScoped<IGoodsReceivalRepository, GoodsReceivalRepository>();
+            builder.Services.AddScoped<IPickOrderRepository, PickOrderRepository>();
+            builder.Services.AddScoped<IWebhookRepository, WebhookRepository>();
             builder.Services.AddScoped<IErpMessageRepository, ErpMessageRepository>();
             builder.Services.AddScoped<ITimeLineRepository, TimeLineRepository>();
-            builder.Services.AddScoped<IGoodsReceivalClosedRepository, GoodsReceivalClosedRepository>();
             builder.Services.AddScoped<IGoodsReceivalLineCreatedRepository, GoodsReceivalLineCreatedRepository>();
 
             this.ConfigureAutoMapper(builder.Services);

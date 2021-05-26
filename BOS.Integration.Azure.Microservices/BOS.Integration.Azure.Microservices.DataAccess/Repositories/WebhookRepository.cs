@@ -6,15 +6,15 @@ using System;
 
 namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
 {
-    public class GoodsReceivalClosedRepository : CosmosDbRepository<GoodsReceivalClosed>, IGoodsReceivalClosedRepository
+    public class WebhookRepository : CosmosDbRepository<WebhookInfo>, IWebhookRepository
     {
         public override string ContainerName { get; } = "webhook";
 
-        public override string GenerateId(GoodsReceivalClosed entity) => Guid.NewGuid().ToString();
+        public override string GenerateId(WebhookInfo entity) => Guid.NewGuid().ToString();
 
         public override PartitionKey ResolvePartitionKey(string partitionKey) => new PartitionKey(partitionKey);
 
-        public GoodsReceivalClosedRepository(ICosmosDbContainerFactory factory)
+        public WebhookRepository(ICosmosDbContainerFactory factory)
             : base(factory)
         {
         }

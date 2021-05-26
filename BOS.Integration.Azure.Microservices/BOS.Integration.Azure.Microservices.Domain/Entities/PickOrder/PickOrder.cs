@@ -1,17 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
+using BOS.Integration.Azure.Microservices.Domain.ValidationAttributes;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
 {
     public class PickOrder : ErpEntity
     {
+        private const int InstructionMaxLength = 2;
+
+
         public string OrderNumber { get; set; }
 
         public int OrderTypeId { get; set; }
 
         public string CountryId { get; set; }
 
+        [IsInteger32Validation]
         public string CountryIsoCode { get; set; }
 
+        [IsInteger32Validation]
         public string ShippingProductId { get; set; }
 
         public string ReceiverName { get; set; }
@@ -30,6 +38,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
 
         public string ReceiverCity { get; set; }
 
+        [IsInteger32Validation]
         public string UsStateId { get; set; }
 
         public string CustomerNumber { get; set; }
@@ -54,12 +63,16 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
 
         public string ShipmentInstructions { get; set; }
 
-        public int PickingInstruction { get; set; }
+        [MaxLength(InstructionMaxLength)]
+        public string PickingInstruction { get; set; }
 
-        public int PackingInstruction { get; set; }
+        [MaxLength(InstructionMaxLength)]
+        public string PackingInstruction { get; set; }
 
+        [IsInteger32Validation]
         public string SubOwnerId { get; set; }
 
+        [IsInteger32Validation]
         public string SubOwnerAddressId { get; set; }
 
         public string ShippingInstructionDriver { get; set; }
@@ -87,5 +100,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
         public bool IsClosed { get; set; }
 
         public List<SalesLine> SalesLines { get; set; }
+
+        public PrimeCargoPickOrderResponseDTO PrimeCargoData { get; set; }
     }
 }
