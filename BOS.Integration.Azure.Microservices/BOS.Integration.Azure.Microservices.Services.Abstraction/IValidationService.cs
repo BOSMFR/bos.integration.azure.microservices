@@ -1,7 +1,10 @@
-﻿namespace BOS.Integration.Azure.Microservices.Services.Abstraction
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 {
     public interface IValidationService
     {
-        bool Validate<T>(T model);
+        List<ValidationResult> Validate<T>(T model);
     }
 }

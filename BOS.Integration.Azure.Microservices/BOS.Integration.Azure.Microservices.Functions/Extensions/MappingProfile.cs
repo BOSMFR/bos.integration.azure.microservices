@@ -56,26 +56,15 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<ProductEntity, ProductGridDTO>()
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
 
-            CreateMap<ProductDTO, PrimeCargoProductRequestDTO>()
-                .ForMember(x => x.Barcode, x => x.MapFrom(x => x.EanNo))
-                .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
-                .ForMember(x => x.TypeId, x => x.MapFrom(x => MapPrimeCargoProductType(x.WmsProductType)))
-                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId))
-                .ForMember(x => x.Variant1, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Colour.Code + " " + x.Colour.Description)))
-                .ForMember(x => x.Variant2, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Size.Code)))
-                .ForMember(x => x.Variant3, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Style.Code)))
-                .ForMember(x => x.Variant4, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Assortment.Code + " " + x.Assortment.Description)))
-                .ForMember(x => x.Variant5, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Sku)));
-
             CreateMap<ProductEntity, PrimeCargoProductRequestDTO>()
                 .ForMember(x => x.Barcode, x => x.MapFrom(x => x.EanNo))
                 .ForMember(x => x.PartNumber, x => x.MapFrom(x => x.ItemNo))
                 .ForMember(x => x.TypeId, x => x.MapFrom(x => MapPrimeCargoProductType(x.WmsProductType)))
                 .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId))
                 .ForMember(x => x.Variant1, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Colour.Code + " " + x.Colour.Description)))
-                .ForMember(x => x.Variant2, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Size.Code)))
+                .ForMember(x => x.Variant2, x => x.MapFrom(x => MapPrimeCargoProductVariant2(x)))
                 .ForMember(x => x.Variant3, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Style.Code)))
-                .ForMember(x => x.Variant4, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Assortment.Code + " " + x.Assortment.Description)))
+                .ForMember(x => x.Variant4, x => x.MapFrom(x => string.Empty))
                 .ForMember(x => x.Variant5, x => x.MapFrom(x => MapPrimeCargoProductVariant(x.Sku)));
 
             CreateMap<PrimeCargoResponseContent<PrimeCargoProductResponseData>, PrimeCargoProductResponseDTO>()
@@ -159,6 +148,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             };
 
         private string MapPrimeCargoProductVariant(string variant) => variant.Length > VariantMaxLength ?  variant.Substring(0, VariantMaxLength).Trim() : variant;
+
+        private string MapPrimeCargoProductVariant2(ProductEntity x) => 
+            MapPrimeCargoProductVariant(string.IsNullOrEmpty(x.Assortment?.Code) ? x.Size.Code : x.Assortment.Code + " " + x.Assortment.Description);
 
         private int? MapNullableInt(string value)
         {

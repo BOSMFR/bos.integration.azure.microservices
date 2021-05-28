@@ -12,7 +12,7 @@
         public const string ErpUpdatedSuccessfully = "ERP updated Successfully";
         public const string TimeOutUpdatingErp = "TimeOut updating ERP";
         public const string ErrorUpdatingERP = "Error updating ERP - ";
-        public const string ErrorValidation = " validation error";
+        public const string ErrorValidation = " validation error - ";
 
         // SSIS
         public const string SsisMessageReceived = "SSIS message Received";

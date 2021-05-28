@@ -87,9 +87,18 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 }
 
                 // Validate pick order
-                if (!validationService.Validate(pickOrder) || pickOrder.SalesLines.Any(x => !validationService.Validate(x) || !validationService.Validate(x.Properties)))
+                var validationResults = validationService.Validate(pickOrder);
+
+                validationResults.AddRange(pickOrder.SalesLines.SelectMany(x => validationService.Validate(x).Concat(validationService.Validate(x.Properties))));
+
+                if (validationResults.Count > 0)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = NavObject.PickOrder + TimeLineDescription.ErrorValidation, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
+                    timeLines.AddRange(validationResults.Select(x => new TimeLineDTO 
+                    {
+                        Description = NavObject.PickOrder + TimeLineDescription.ErrorValidation + x.ErrorMessage, 
+                        Status = TimeLineStatus.Error, 
+                        DateTime = DateTime.UtcNow 
+                    }));
 
                     // Write logs to database
                     await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);

@@ -1,7 +1,6 @@
 using AutoMapper;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Product;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
@@ -11,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
@@ -90,13 +90,22 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 }
 
                 // Map the product to the prime cargo request object and check a description
-                var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(productDTO);
+                var primeCargoProduct = this.mapper.Map<PrimeCargoProductRequestDTO>(product);
 
                 primeCargoProduct.Description = PrimeCargoProductHelper.TrimPrimeCargoProductDescription(primeCargoProduct.Description);
 
                 // Validate prime cargo product
-                if (!validationService.Validate(primeCargoProduct))
+                var validationResults = validationService.Validate(primeCargoProduct);
+
+                if (validationResults.Count > 0)
                 {
+                    timeLines.AddRange(validationResults.Select(x => new TimeLineDTO
+                    {
+                        Description = NavObject.Product + TimeLineDescription.ErrorValidation + x.ErrorMessage,
+                        Status = TimeLineStatus.Error,
+                        DateTime = DateTime.UtcNow
+                    }));
+
                     erpMessageStatuses.Add(ErpMessageStatus.Error);
 
                     // Set product as invalid

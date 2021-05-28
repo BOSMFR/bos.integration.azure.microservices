@@ -86,9 +86,16 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 }
 
                 // Validate goods receival
-                if (!validationService.Validate(goodsReceival) || goodsReceival.PurchaseLines.Any(x => !validationService.Validate(x)))
+                var validationResults = validationService.Validate(goodsReceival).Concat(goodsReceival.PurchaseLines.SelectMany(x => validationService.Validate(x))).ToList();
+
+                if (validationResults.Count > 0)
                 {
-                    timeLines.Add(new TimeLineDTO { Description = NavObject.GoodsReceival + TimeLineDescription.ErrorValidation, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
+                    timeLines.AddRange(validationResults.Select(x => new TimeLineDTO
+                    {
+                        Description = NavObject.GoodsReceival + TimeLineDescription.ErrorValidation + x.ErrorMessage,
+                        Status = TimeLineStatus.Error,
+                        DateTime = DateTime.UtcNow
+                    }));
 
                     // Write logs to database
                     await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);
