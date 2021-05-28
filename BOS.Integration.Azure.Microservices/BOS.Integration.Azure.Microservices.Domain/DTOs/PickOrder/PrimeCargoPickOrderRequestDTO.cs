@@ -54,15 +54,15 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
 
         public string PackingInstruction { get; set; }
 
-        public int SubOwnerId { get; set; }
+        public int? SubOwnerId { get; set; }
 
-        public int SubOwnerAddressId { get; set; }
+        public int? SubOwnerAddressId { get; set; }
 
         public string ShippingInstructionDriver { get; set; }
 
         public string ShippingInstructionReceiver { get; set; }
 
-        public int UsStateId { get; set; }
+        public int? UsStateId { get; set; }
 
         public int CustomsStatus { get; set; }
 

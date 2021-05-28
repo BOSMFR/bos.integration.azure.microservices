@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
+using PickOrderEntity = BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder.PickOrder;
+
 namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
 {
     public class NavSetPickOrderClosedFunction
@@ -34,23 +36,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
             {
                 log.LogInformation("NavSetPickOrderClosed function recieved the message from the topic");
 
-                var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoPickOrderResponseDTO>>(mySbMsg);
+                var messageObject = JsonConvert.DeserializeObject<RequestMessage<PickOrderEntity>>(mySbMsg);
 
-                // Check if the pick order is closed
-                var pickOrder = await pickOrderService.GetPickOrderByIdAsync(messageObject.RequestObject.OrderNumber);
-
-                if (pickOrder.IsClosed)
-                {
-                    string message = $"The PickOrder with OrderNumber = {messageObject.RequestObject.OrderNumber} is already closed";
-
-                    log.LogInformation(message);
-                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, message, TimeLineStatus.Information);
-
-                    return;
-                }
+                var pickOrder = messageObject.RequestObject;
 
                 // Set the pick order closed in Nav
-                var result = await navService.UpdatePickOrderIntoNavAsync(messageObject.RequestObject);
+                var result = await navService.UpdatePickOrderIntoNavAsync(pickOrder.PrimeCargoData);
 
                 if (!result.Succeeded)
                 {

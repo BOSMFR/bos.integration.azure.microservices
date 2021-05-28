@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
+using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
+
 namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 {
     public class NavSetGoodsReceivalClosedFunction
@@ -34,23 +36,12 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
             {
                 log.LogInformation("NavSetGoodsReceivalClosed function recieved the message from the topic");
 
-                var messageObject = JsonConvert.DeserializeObject<RequestMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
+                var messageObject = JsonConvert.DeserializeObject<RequestMessage<GoodsReceivalEntity>>(mySbMsg);
 
-                // Check if the goods receival is closed
-                var goodsReceival = await goodsReceivalService.GetGoodsReceivalByIdAsync(messageObject.RequestObject.ReceivalNumber);
-
-                if (goodsReceival.IsClosed)
-                {
-                    string message = $"The GoodsReceival with ReceivalNumber = {messageObject.RequestObject.ReceivalNumber} is already closed";
-
-                    log.LogInformation(message);
-                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, message, TimeLineStatus.Information);
-
-                    return;
-                }
+                var goodsReceival = messageObject.RequestObject;
 
                 // Set the goods receival closed in Nav
-                var result = await navService.UpdateGoodsReceivalIntoNavAsync(messageObject.RequestObject);
+                var result = await navService.UpdateGoodsReceivalIntoNavAsync(goodsReceival.PrimeCargoData);
 
                 if (!result.Succeeded)
                 {

@@ -1,4 +1,5 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
+using BOS.Integration.Azure.Microservices.Domain.ValidationAttributes;
 using System.Collections.Generic;
 
 namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
@@ -7,6 +8,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
     {
         public int DocumentType { get; set; }
 
+        [DocumentTypeValidation]
         public string DocumentTypeText { get; set; }
 
         public string ReceiveListName { get; set; }

@@ -89,7 +89,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 // Validate pick order
                 if (!validationService.Validate(pickOrder) || pickOrder.SalesLines.Any(x => !validationService.Validate(x) || !validationService.Validate(x.Properties)))
                 {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorValidationPickOrder, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
+                    timeLines.Add(new TimeLineDTO { Description = NavObject.PickOrder + TimeLineDescription.ErrorValidation, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
 
                     // Write logs to database
                     await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);
@@ -101,7 +101,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
 
                 // Map the pick order to the prime cargo request object
                 var primeCargoPickOrder = this.mapper.Map<PrimeCargoPickOrderRequestDTO>(pickOrderDTO);
-                primeCargoPickOrder.ShipDate = DateHelper.ConvertErpDateToPrimeCargoDate(pickOrderDTO.ShipDate);
+                primeCargoPickOrder.ShipDate = DateTimeHelper.ConvertErpDateToPrimeCargoDate(pickOrderDTO.ShipDate);
 
                 string testJson = JsonConvert.SerializeObject(primeCargoPickOrder);
 

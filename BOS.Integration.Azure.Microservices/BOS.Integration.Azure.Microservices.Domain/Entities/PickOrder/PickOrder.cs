@@ -38,7 +38,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
 
         public string ReceiverCity { get; set; }
 
-        [IsInteger32Validation]
+        [IsNullableInteger32Validation]
         public string UsStateId { get; set; }
 
         public string CustomerNumber { get; set; }
@@ -69,10 +69,10 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
         [MaxLength(InstructionMaxLength)]
         public string PackingInstruction { get; set; }
 
-        [IsInteger32Validation]
+        [IsNullableInteger32Validation]
         public string SubOwnerId { get; set; }
 
-        [IsInteger32Validation]
+        [IsNullableInteger32Validation]
         public string SubOwnerAddressId { get; set; }
 
         public string ShippingInstructionDriver { get; set; }

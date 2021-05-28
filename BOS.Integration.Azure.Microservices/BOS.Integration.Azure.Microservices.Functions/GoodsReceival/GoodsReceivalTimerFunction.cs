@@ -94,7 +94,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                         {
                             LogInfo erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
 
-                            await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.SuccessfullyReceivedGoodsReceival, TimeLineStatus.Information);
+                            await this.logService.AddTimeLineAsync(erpInfo, NavObject.GoodsReceival + TimeLineDescription.PrimeCargoSuccessfullyReceived, TimeLineStatus.Information);
 
                             // Update goods receival in Cosmos DB         
                             await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(primeCargoGoodsReceival, goodsReceival);
@@ -102,7 +102,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                             log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
 
                             // Create a topic message
-                            var messageBody = new RequestMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = erpInfo, RequestObject = primeCargoGoodsReceival };
+                            var messageBody = new RequestMessage<GoodsReceivalEntity> { ErpInfo = erpInfo, RequestObject = goodsReceival };
 
                             messages.Add(serviceBusService.CreateMessage(JsonConvert.SerializeObject(messageBody)));
                         }                        

@@ -79,7 +79,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
         public string PackingInformation { get; set; }
 
         [XmlElement("holdCode")]
-        public bool HoldCode { get; set; }
+        public bool? HoldCode { get; set; }
 
         [XmlElement("holdReason")]
         public string HoldReason { get; set; }
@@ -118,10 +118,10 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
         public int? CollectCountryId { get; set; }
 
         [XmlElement("subOwnerId")]
-        public int SubOwnerId { get; set; }
+        public int? SubOwnerId { get; set; }
 
         [XmlElement("subOwnerAddressId")]
-        public int SubOwnerAddressId { get; set; }
+        public int? SubOwnerAddressId { get; set; }
 
         [XmlElement("shippingInstructionDriver")]
         public string ShippingInstructionDriver { get; set; }

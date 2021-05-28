@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace BOS.Integration.Azure.Microservices.Services.Helpers
 {
-    public static class DateHelper
+    public static class DateTimeHelper
     {
         public const string ErpDateTimeFormat = "yyyyMMdd hh:mm:ss";
         public const string ErpDateFormat = "yyyyMMdd";
@@ -27,6 +27,22 @@ namespace BOS.Integration.Azure.Microservices.Services.Helpers
             }
 
             return null;
+        }
+
+        public static DateTime ConvertUtcToSpecificTimeZone(DateTime date, string timeZone)
+        {
+            try
+            {
+                TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+
+                var utc = date.ToUniversalTime();
+
+                return TimeZoneInfo.ConvertTimeFromUtc(utc, cstZone);
+            }
+            catch (Exception ex)
+            {
+                return date;
+            }
         }
     }
 }

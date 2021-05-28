@@ -16,6 +16,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 
         Task<List<PickOrder>> GetPickOrdersByFilterAsync(PickOrderFilterDTO pickOrderFilter);
 
+        Task<List<PickOrder>> GetOpenPickOrdersAsync();
+
         Task<PickOrder> GetPickOrderByIdAsync(string id);
 
         Task<bool> SetPickOrderClosedAsync(PickOrder pickOrder);

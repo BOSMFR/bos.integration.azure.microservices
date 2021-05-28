@@ -5,8 +5,8 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs
 {
     public class LogDTO
     {
-        public ICollection<TimeLine> TimeLines { get; set; }
+        public List<TimeLine> TimeLines { get; set; }
 
-        public ICollection<ErpMessage> ErpMessages { get; set; }
+        public List<ErpMessage> ErpMessages { get; set; }
     }
 }

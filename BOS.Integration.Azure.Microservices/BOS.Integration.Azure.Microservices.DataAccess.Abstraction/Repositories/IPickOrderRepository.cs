@@ -8,5 +8,7 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositorie
     public interface IPickOrderRepository : IRepository<PickOrder>
     {
         Task<List<PickOrder>> GetByFilterAsync(PickOrderFilterDTO pickOrderFilter, string partitionKey = null);
+
+        Task<List<PickOrder>> GetAllOpenAsync(string partitionKey = null);
     }
 }

@@ -12,6 +12,7 @@
         public const string ErpUpdatedSuccessfully = "ERP updated Successfully";
         public const string TimeOutUpdatingErp = "TimeOut updating ERP";
         public const string ErrorUpdatingERP = "Error updating ERP - ";
+        public const string ErrorValidation = " validation error";
 
         // SSIS
         public const string SsisMessageReceived = "SSIS message Received";
@@ -30,27 +31,23 @@
         // PrimeCargo
         public const string PrimeCargoCreateMessageSentServiceBus = " Create Message Sent to Azure Service Bus";
         public const string PrimeCargoUpdateMessageSentServiceBus = " Update Message Sent to Azure Service Bus";
+        public const string PrimeCargoSuccessfullyReceived = " is successfully received from Prime Cargo";
+        public const string PrimeCargoErrorGetting = "Error getting a {0} from Prime Cargo - ";
 
         // Sku
         public const string PreparingMessageCanceled = "Preparing message canceled - startDatePrimeCargoExport set to ";
 
         // GoodsReceival
         public const string ErrorCreatingGoodsReceival = "Error creating a GoodsReceival - ";
-        public const string ErrorGoodsReceivalType = "Error mapping GoodsReceival document type";
         public const string SuccessfullyUpdatedGoodsReceival = "The GoodsReceival is successfully updated into Nav";
         public const string ErrorUpdatingGoodsReceival = "Error updating a GoodsReceival into Nav - ";
-        public const string SuccessfullyReceivedGoodsReceival = "The GoodsReceival is successfully received from Prime Cargo";
-        public const string ErrorGettingGoodsReceival = "Error getting a GoodsReceival from Prime Cargo - ";
         public const string SuccessfullyClosedGoodsReceival = "The GoodsReceival is successfully closed into Nav";
         public const string ErrorClosingGoodsReceival = "Error closing a GoodsReceival into Nav - ";
 
         // PickOrder
         public const string ErrorCreatingPickOrder = "Error creating a PickOrder - ";
-        public const string ErrorValidationPickOrder = "PickOrder validation error";
         public const string SuccessfullyUpdatedPickOrder = "The PickOrder is successfully updated into Nav";
         public const string ErrorUpdatingPickOrder = "Error updating a PickOrder into Nav - ";
-        public const string SuccessfullyReceivedPickOrder = "The PickOrder is successfully received from Prime Cargo";
-        public const string ErrorGettingPickOrder = "Error getting a PickOrder from Prime Cargo - ";
         public const string SuccessfullyClosedPickOrder = "The PickOrder is successfully closed into Nav";
         public const string ErrorClosingPickOrder = "Error closing a PickOrder into Nav - ";
 

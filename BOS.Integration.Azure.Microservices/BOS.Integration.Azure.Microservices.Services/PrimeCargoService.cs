@@ -94,9 +94,30 @@ namespace BOS.Integration.Azure.Microservices.Services
             return responseContent;            
         }
 
+        public async Task<T> GetPrimeCargoObjectAsync<T>(string url, LogInfo erpInfo, ILogger log, string entityName)
+        {
+            var result = await this.CallPrimeCargoGetEndpointAsync<T>(url);
+
+            var responseObject = result.Entity as PrimeCargoResponseContent<T>;
+
+            if (!result.Succeeded || responseObject == null)
+            {
+                string error = result.Error ?? "Could not get a " + entityName + " from PrimeCargo";
+
+                await this.logService.AddTimeLineAsync(erpInfo, string.Format(TimeLineDescription.PrimeCargoErrorGetting, entityName) + error, TimeLineStatus.Error);
+
+                log.LogError(error);
+                throw new Exception(error);
+            }
+
+            await this.logService.AddTimeLineAsync(erpInfo, entityName + TimeLineDescription.PrimeCargoSuccessfullyReceived, TimeLineStatus.Information);
+
+            return responseObject.Data;
+        }
+
         public async Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate)
         {
-            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate.ToString(DateHelper.PrimeCargoDateFormat);
+            string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate.ToString(DateTimeHelper.PrimeCargoDateFormat);
 
             return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoGoodsReceivalResponseDTO>>(url);
         }

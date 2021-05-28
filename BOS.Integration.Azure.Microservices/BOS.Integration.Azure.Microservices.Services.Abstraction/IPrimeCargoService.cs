@@ -12,6 +12,8 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
     {
         Task<PrimeCargoResponseContent<V>> CreateOrUpdatePrimeCargoObjectAsync<T, V>(RequestMessage<T> messageObject, ILogger log, string entityName, ActionType actionType);
 
+        Task<T> GetPrimeCargoObjectAsync<T>(string url, LogInfo erpInfo, ILogger log, string entityName);
+
         Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate);
 
         Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject);

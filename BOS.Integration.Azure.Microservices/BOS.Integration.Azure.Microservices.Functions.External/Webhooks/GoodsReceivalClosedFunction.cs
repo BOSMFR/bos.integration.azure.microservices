@@ -2,7 +2,6 @@
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Webhooks;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
@@ -110,32 +109,29 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
 
                 erpInfo = this.mapper.Map<LogInfo>(goodsReceival);
 
+                // Check if the goods receival is closed
+                if (goodsReceival.IsClosed)
+                {
+                    string message = $"The GoodsReceival with ReceivalNumber = {goodsReceival.WmsDocumentNo} is already closed";
+
+                    log.LogInformation(message);
+                    await this.logService.AddTimeLineAsync(erpInfo, message, TimeLineStatus.Information);
+
+                    return null;
+                }
+
                 // Get goods receival from Prime Cargo
                 string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceival?id=" + goodsReceivalClosedDTO.GoodsReceivalId.ToString();
 
-                var result = await primeCargoService.CallPrimeCargoGetEndpointAsync<PrimeCargoGoodsReceivalResponseDTO>(url);
-
-                var requestObject = result.Entity as PrimeCargoResponseContent<PrimeCargoGoodsReceivalResponseDTO>;
-
-                if (!result.Succeeded || requestObject == null)
-                {
-                    string error = result.Error ?? "Could not get a GoodsReceival from PrimeCargo";
-
-                    await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.ErrorGettingGoodsReceival + error, TimeLineStatus.Error);
-
-                    log.LogError(error);
-                    throw new Exception(error);
-                }
-
-                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.SuccessfullyReceivedGoodsReceival, TimeLineStatus.Information);
+                var primeCargoGoodsReceival = await primeCargoService.GetPrimeCargoObjectAsync<PrimeCargoGoodsReceivalResponseDTO>(url, erpInfo, log, NavObject.GoodsReceival);
 
                 // Update goods receival in Cosmos DB            
-                await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(requestObject.Data, goodsReceival);
+                await goodsReceivalService.UpdateGoodsReceivalFromPrimeCargoInfoAsync(primeCargoGoodsReceival, goodsReceival);
 
                 log.LogInformation("GoodsReceival is successfully updated in Cosmos DB");
 
                 // Create a topic message
-                var messageBody = new RequestMessage<PrimeCargoGoodsReceivalResponseDTO> { ErpInfo = erpInfo, RequestObject = requestObject.Data };
+                var messageBody = new RequestMessage<GoodsReceivalEntity> { ErpInfo = erpInfo, RequestObject = goodsReceival };
 
                 return this.serviceBusService.CreateMessage(JsonConvert.SerializeObject(messageBody));
             }

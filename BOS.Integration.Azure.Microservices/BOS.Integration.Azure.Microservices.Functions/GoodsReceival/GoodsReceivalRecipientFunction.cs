@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using GoodsReceivalEntity = BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival.GoodsReceival;
 
@@ -18,6 +19,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
     public class GoodsReceivalRecipientFunction
     {
         private readonly IGoodsReceivalService goodsReceivalService;
+        private readonly IValidationService validationService;
         private readonly IServiceBusService serviceBusService;
         private readonly IBlobService blobService;
         private readonly ILogService logService;
@@ -25,12 +27,14 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
 
         public GoodsReceivalRecipientFunction(
             IGoodsReceivalService goodsReceivalService,
+            IValidationService validationService,
             IServiceBusService serviceBusService,
             IBlobService blobService,
             IMapper mapper,
             ILogService logService)
         {
             this.goodsReceivalService = goodsReceivalService;
+            this.validationService = validationService;
             this.serviceBusService = serviceBusService;
             this.blobService = blobService;
             this.logService = logService;
@@ -81,23 +85,24 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                     return null;
                 }
 
+                // Validate goods receival
+                if (!validationService.Validate(goodsReceival) || goodsReceival.PurchaseLines.Any(x => !validationService.Validate(x)))
+                {
+                    timeLines.Add(new TimeLineDTO { Description = NavObject.GoodsReceival + TimeLineDescription.ErrorValidation, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
+
+                    // Write logs to database
+                    await this.logService.AddErpMessageAsync(erpInfo, ErpMessageStatus.Error);
+                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
+
+                    log.LogError("Validation error");
+                    return null;
+                }
+
                 // Map the goods receival to the prime cargo request object
                 var primeCargoGoodsReceival = this.mapper.Map<PrimeCargoGoodsReceivalRequestDTO>(goodsReceivalDTO);
 
-                primeCargoGoodsReceival.Eta = DateHelper.ConvertErpDateToPrimeCargoDate(goodsReceivalDTO.Eta);
+                primeCargoGoodsReceival.Eta = DateTimeHelper.ConvertErpDateToPrimeCargoDate(goodsReceivalDTO.Eta);
                 primeCargoGoodsReceival.ReceivalTypeId = GoodsReceivalType.OrderTypeId;
-
-                // Check GoodsReceival document type
-                if (goodsReceivalDTO.DocumentTypeText != GoodsReceivalType.Order)
-                {
-                    timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.ErrorGoodsReceivalType, Status = TimeLineStatus.Error, DateTime = DateTime.UtcNow });
-
-                    // Write time lines to database
-                    await this.logService.AddTimeLinesAsync(erpInfo, timeLines);
-
-                    log.LogError(TimeLineDescription.ErrorGoodsReceivalType);
-                    return null;
-                }
 
                 timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.PrepareForServiceBus, Status = TimeLineStatus.Information, DateTime = DateTime.UtcNow });
 

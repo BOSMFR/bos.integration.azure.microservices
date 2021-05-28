@@ -1,4 +1,6 @@
-﻿namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BOS.Integration.Azure.Microservices.Domain.Entities.GoodsReceival
 {
     public class PurchaseLine
     {
@@ -7,6 +9,9 @@
         public int OrderLineNo { get; set; }
 
         public int ReceiveListLineNo { get; set; }
+
+        [Required]
+        public string WmsCustomsReference { get; set; }
 
         public int PrimeCargoProductId { get; set; }
 

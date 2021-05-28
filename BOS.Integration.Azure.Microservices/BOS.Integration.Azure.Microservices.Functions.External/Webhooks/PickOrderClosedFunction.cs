@@ -2,7 +2,6 @@
 using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.Webhooks;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
@@ -110,32 +109,29 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
 
                 erpInfo = this.mapper.Map<LogInfo>(pickOrder);
 
+                // Check if the pick order is closed
+                if (pickOrder.IsClosed)
+                {
+                    string message = $"The PickOrder with OrderNumber = {pickOrder.OrderNumber} is already closed";
+
+                    log.LogInformation(message);
+                    await this.logService.AddTimeLineAsync(erpInfo, message, TimeLineStatus.Information);
+
+                    return null;
+                }
+
                 // Get pick order from Prime Cargo
                 string url = configuration.PrimeCargoSettings.Url + "PickOrder/GetPickOrder?pickOrderHeaderId=" + pickOrderClosedDTO.PickOrderHeaderId.ToString();
 
-                var result = await primeCargoService.CallPrimeCargoGetEndpointAsync<PrimeCargoPickOrderResponseDTO>(url);
-
-                var requestObject = result.Entity as PrimeCargoResponseContent<PrimeCargoPickOrderResponseDTO>;
-
-                if (!result.Succeeded || requestObject == null)
-                {
-                    string error = result.Error ?? "Could not get a PickOrder from PrimeCargo";
-
-                    await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.ErrorGettingPickOrder + error, TimeLineStatus.Error);
-
-                    log.LogError(error);
-                    throw new Exception(error);
-                }
-
-                await this.logService.AddTimeLineAsync(erpInfo, TimeLineDescription.SuccessfullyReceivedPickOrder, TimeLineStatus.Information);
+                var primeCargoPickOrder = await primeCargoService.GetPrimeCargoObjectAsync<PrimeCargoPickOrderResponseDTO>(url, erpInfo, log, NavObject.PickOrder);
 
                 // Update pick order in Cosmos DB            
-                await pickOrderService.UpdatePickOrderFromPrimeCargoInfoAsync(requestObject.Data, pickOrder);
+                await pickOrderService.UpdatePickOrderFromPrimeCargoInfoAsync(primeCargoPickOrder, pickOrder);
 
                 log.LogInformation("PickOrder is successfully updated in Cosmos DB");
 
                 // Create a topic message
-                var messageBody = new RequestMessage<PrimeCargoPickOrderResponseDTO> { ErpInfo = erpInfo, RequestObject = requestObject.Data };
+                var messageBody = new RequestMessage<PickOrderEntity> { ErpInfo = erpInfo, RequestObject = pickOrder };
 
                 return this.serviceBusService.CreateMessage(JsonConvert.SerializeObject(messageBody));
             }

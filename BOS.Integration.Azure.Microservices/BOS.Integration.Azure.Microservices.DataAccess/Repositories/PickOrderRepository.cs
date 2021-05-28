@@ -37,15 +37,32 @@ namespace BOS.Integration.Azure.Microservices.DataAccess.Repositories
                 };
             }
 
-            Expression<Func<PickOrder, bool>> query = g => (g.ReceivedFromErp >= pickOrderFilter.FromDate && g.ReceivedFromErp < pickOrderFilter.ToDate)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.OrderNumber) || g.OrderNumber == pickOrderFilter.OrderNumber)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerNumber) || g.CustomerNumber == pickOrderFilter.CustomerNumber)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId1) || g.CustomerID1 == pickOrderFilter.CustomerId1)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId2) || g.CustomerID2 == pickOrderFilter.CustomerId2)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId3) || g.CustomerID3 == pickOrderFilter.CustomerId3)
-                                                        && (string.IsNullOrEmpty(pickOrderFilter.ReceiverName) || g.ReceiverName.Contains(pickOrderFilter.ReceiverName));
+            Expression<Func<PickOrder, bool>> query = p => (p.ReceivedFromErp >= pickOrderFilter.FromDate && p.ReceivedFromErp < pickOrderFilter.ToDate)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.OrderNumber) || p.OrderNumber == pickOrderFilter.OrderNumber)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerNumber) || p.CustomerNumber == pickOrderFilter.CustomerNumber)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId1) || p.CustomerID1 == pickOrderFilter.CustomerId1)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId2) || p.CustomerID2 == pickOrderFilter.CustomerId2)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.CustomerId3) || p.CustomerID3 == pickOrderFilter.CustomerId3)
+                                                        && (string.IsNullOrEmpty(pickOrderFilter.ReceiverName) || p.ReceiverName.Contains(pickOrderFilter.ReceiverName));
 
             var iterator = _container.GetItemLinqQueryable<PickOrder>(requestOptions: requestOptions).Where(query).ToFeedIterator();
+
+            return (await iterator.ReadNextAsync()).ToList();
+        }
+
+        public async Task<List<PickOrder>> GetAllOpenAsync(string partitionKey = null)
+        {
+            QueryRequestOptions requestOptions = null;
+
+            if (!string.IsNullOrEmpty(partitionKey))
+            {
+                requestOptions = new QueryRequestOptions
+                {
+                    PartitionKey = this.ResolvePartitionKey(partitionKey)
+                };
+            }
+
+            var iterator = _container.GetItemLinqQueryable<PickOrder>(requestOptions: requestOptions).Where(x => !x.IsClosed).ToFeedIterator();
 
             return (await iterator.ReadNextAsync()).ToList();
         }

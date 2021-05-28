@@ -15,8 +15,6 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival
 
         public string WmsDocumentNo { get; set; }
 
-        public string WmsCustomsReference { get; set; }
-
         public string Eta { get; set; }
 
         public string ErpRecordEvent { get; set; }

@@ -3,6 +3,6 @@
     public enum PrimeCargoProductType
     {
         F = 1,
-        B = 7
+        B = 3
     }
 }

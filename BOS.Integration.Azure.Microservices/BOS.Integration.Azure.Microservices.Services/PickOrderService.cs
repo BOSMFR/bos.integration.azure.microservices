@@ -109,6 +109,11 @@ namespace BOS.Integration.Azure.Microservices.Services
             return await this.repository.GetByFilterAsync(pickOrderFilter, NavObjectCategory.PickOrder);
         }
 
+        public Task<List<PickOrder>> GetOpenPickOrdersAsync()
+        {
+            return repository.GetAllOpenAsync(NavObjectCategory.PickOrder);
+        }
+
         public Task<PickOrder> GetPickOrderByIdAsync(string id)
         {
             return repository.GetByIdAsync(id, NavObjectCategory.PickOrder);

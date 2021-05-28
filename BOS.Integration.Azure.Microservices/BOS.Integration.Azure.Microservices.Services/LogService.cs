@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using BOS.Integration.Azure.Microservices.DataAccess.Abstraction.Repositories;
+using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.Entities;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
+using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +25,19 @@ namespace BOS.Integration.Azure.Microservices.Services
             this.mapper = mapper;
         }
 
-        public async Task<LogDTO> GetLogsByObjectIdAsync(string objectId) =>
-            new LogDTO
+        public async Task<LogDTO> GetLogsByObjectIdAsync(string objectId)
+        {
+            var result = new LogDTO
             {
                 TimeLines = await timeLineRepository.GetByObjectIdAsync(objectId),
                 ErpMessages = await erpMessageRepository.GetByObjectIdAsync(objectId)
             };
+            
+            // Map Time to EasternEuropean time zone
+            result.TimeLines.ForEach(x => x.DateTime = DateTimeHelper.ConvertUtcToSpecificTimeZone(x.DateTime, TimeZoneCode.EasternEuropean));
+
+            return result;
+        }            
 
         public async Task<List<TimeLine>> GetTimeLinesByFilterAsync(TimeLineFilterDTO timeLineFilter)
         {
@@ -38,8 +47,12 @@ namespace BOS.Integration.Azure.Microservices.Services
             timeLineFilter.FromDate ??= DateTime.MinValue;
             timeLineFilter.ToDate ??= DateTime.MaxValue;
 
-            return await timeLineRepository.GetByFilterAsync(timeLineFilter);
+            var timeLines = await timeLineRepository.GetByFilterAsync(timeLineFilter);
 
+            // Map Time to EasternEuropean time zone
+            timeLines.ForEach(x => x.DateTime = DateTimeHelper.ConvertUtcToSpecificTimeZone(x.DateTime, TimeZoneCode.EasternEuropean));
+
+            return timeLines;
         }
 
         public async Task AddErpMessageAsync(LogInfo erpInfo, string status)

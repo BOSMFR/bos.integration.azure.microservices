@@ -111,7 +111,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<PurchaseLine, PrimeCargoPurchaseLineRequestDTO>()
                 .ForMember(x => x.ExtReference, x => x.MapFrom(x => x.WmsDocumentLineNo))
                 .ForMember(x => x.Qty, x => x.MapFrom(x => x.QtyToReceive))
-                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId));
+                .ForMember(x => x.ProductId, x => x.MapFrom(x => x.PrimeCargoProductId))
+                .ForMember(x => x.CustomsReference, x => x.MapFrom(x => x.WmsCustomsReference));
 
             CreateMap<PickOrderDTO, PickOrderEntity>();
             CreateMap<PickOrderEntity, PickOrderDTO>();
@@ -119,9 +120,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             CreateMap<PickOrderDTO, PrimeCargoPickOrderRequestDTO>()
                 .ForMember(x => x.CountryId, x => x.MapFrom(x => int.Parse(x.CountryIsoCode)))
                 .ForMember(x => x.ShippingProductId, x => x.MapFrom(x => int.Parse(x.ShippingProductId)))
-                .ForMember(x => x.SubOwnerId, x => x.MapFrom(x => int.Parse(x.SubOwnerId)))
-                .ForMember(x => x.SubOwnerAddressId, x => x.MapFrom(x => int.Parse(x.SubOwnerAddressId)))
-                .ForMember(x => x.UsStateId, x => x.MapFrom(x => int.Parse(x.UsStateId)))
+                .ForMember(x => x.SubOwnerId, x => x.MapFrom(x => MapNullableInt(x.SubOwnerId)))
+                .ForMember(x => x.SubOwnerAddressId, x => x.MapFrom(x => MapNullableInt(x.SubOwnerAddressId)))
+                .ForMember(x => x.UsStateId, x => x.MapFrom(x => MapNullableInt(x.UsStateId)))
                 .ForMember(x => x.CustomerId1, x => x.MapFrom(x => x.CustomerID1))
                 .ForMember(x => x.CustomerId2, x => x.MapFrom(x => x.CustomerID2))
                 .ForMember(x => x.CustomerId3, x => x.MapFrom(x => x.CustomerID3))
@@ -158,5 +159,15 @@ namespace BOS.Integration.Azure.Microservices.Functions.Extensions
             };
 
         private string MapPrimeCargoProductVariant(string variant) => variant.Length > VariantMaxLength ?  variant.Substring(0, VariantMaxLength).Trim() : variant;
+
+        private int? MapNullableInt(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            return int.Parse(value);
+        }
     }
 }
