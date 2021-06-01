@@ -122,7 +122,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoGoodsReceivalResponseDTO>>(url);
         }
 
-        public async Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject)
+        private async Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject)
         {
             var actionResult = new ActionExecutionResult();
 
@@ -161,7 +161,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<ActionExecutionResult> CallPrimeCargoGetEndpointAsync<T>(string url)
+        private async Task<ActionExecutionResult> CallPrimeCargoGetEndpointAsync<T>(string url)
         {
             var actionResult = new ActionExecutionResult();
 

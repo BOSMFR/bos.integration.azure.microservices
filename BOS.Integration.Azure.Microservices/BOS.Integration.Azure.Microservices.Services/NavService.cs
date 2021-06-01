@@ -87,7 +87,7 @@ namespace BOS.Integration.Azure.Microservices.Services
 
                 if (!updateSkuResult.Succeeded)
                 {
-                    actionResult.Error = updateSkuResult.Error;
+                    actionResult.Error = $"Could not update an SKU with id {eanNo}";
                     return actionResult;
                 }
 

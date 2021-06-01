@@ -23,6 +23,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
             this.logService = logService;
         }
 
+        [FixedDelayRetry(3, "00:05:00")]
         [FunctionName("UpdateSkuIntoNavFunction")]
         public async Task Run([ServiceBusTrigger("azure-topic-prime-cargo-wms-product-response", "azure-sub-prime-cargo-product-response-nav", Connection = "serviceBus")] string mySbMsg, ILogger log)
         {
