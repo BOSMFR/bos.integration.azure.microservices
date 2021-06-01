@@ -9,5 +9,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs
         public string Description { get; set; }
 
         public string Status { get; set; }
+
+        public string InfoFileName { get; set; }
     }
 }

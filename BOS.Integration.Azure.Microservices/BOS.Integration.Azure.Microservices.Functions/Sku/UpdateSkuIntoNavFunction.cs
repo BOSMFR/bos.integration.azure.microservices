@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions
@@ -29,6 +30,8 @@ namespace BOS.Integration.Azure.Microservices.Functions
             {
                 log.LogInformation("UpdateSkuIntoNav function recieved the message from the topic");
 
+                var timeLines = new List<TimeLineDTO>();
+
                 var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoProductResponseDTO>>(mySbMsg);
                 var primeCargoResponse = messageObject?.ResponseObject;
 
@@ -37,17 +40,22 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 if (!string.IsNullOrEmpty(primeCargoResponse?.EnaNo))
                 {
                     result = await this.navService.UpdateSkuIntoNavAsync(primeCargoResponse.EnaNo, primeCargoResponse.ProductId?.ToString() ?? "0");
+
+                    timeLines = result.Entity as List<TimeLineDTO>;
                 }
 
                 if (result == null || !result.Succeeded)
                 {
                     string errorMessage = string.IsNullOrEmpty(result?.Error) ? "Could not update the sku into Nav" : result.Error;
 
-                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingERP + errorMessage, TimeLineStatus.Error);
+                    timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Error, Description = TimeLineDescription.ErrorUpdatingERP + errorMessage, DateTime = DateTime.UtcNow });
+
+                    await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
                     throw new Exception(errorMessage);
                 }
 
-                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErpUpdatedSuccessfully, TimeLineStatus.Successfully);
+                timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Successfully, Description = TimeLineDescription.ErpUpdatedSuccessfully, DateTime = DateTime.UtcNow });
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
                 log.LogInformation("Sku is successfully updated in Nav");
             }

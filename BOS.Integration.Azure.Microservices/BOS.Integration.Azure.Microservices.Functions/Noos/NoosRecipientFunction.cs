@@ -43,7 +43,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.Noos
                 var erpMessages = new List<string>();
 
                 // Read file from blob storage
-                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+                string fileContent = await this.blobService.DownloadFileContentByFileNameAsync(mySbMsg);
 
                 // Get noos object from the topic message and create or update it in the storage
                 var noosDTO = JsonConvert.DeserializeObject<NoosDTO>(fileContent);

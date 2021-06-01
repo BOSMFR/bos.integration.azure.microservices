@@ -102,6 +102,7 @@ namespace BOS.Integration.Azure.Microservices.Services
                 newTimeLine.DateTime = timeLine.DateTime;
                 newTimeLine.Description = timeLine.Description;
                 newTimeLine.Status = timeLine.Status;
+                newTimeLine.InfoFileName = timeLine.InfoFileName;
 
                 newTimeLines.Add(newTimeLine);
             }

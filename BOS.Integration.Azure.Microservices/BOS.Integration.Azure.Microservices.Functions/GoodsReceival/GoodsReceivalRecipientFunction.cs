@@ -53,7 +53,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 var timeLines = new List<TimeLineDTO>();
 
                 // Read file from blob storage
-                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+                string fileContent = await this.blobService.DownloadFileContentByFileNameAsync(mySbMsg);
 
                 // Get goods receival object from the topic message and create it in the storage
                 var goodsReceivalDTO = JsonConvert.DeserializeObject<GoodsReceivalDTO>(fileContent);

@@ -1,11 +1,11 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain.Constants;
 using BOS.Integration.Azure.Microservices.Domain.DTOs;
-using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using PickOrderEntity = BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder.PickOrder;
@@ -43,15 +43,21 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 // Set the pick order closed in Nav
                 var result = await navService.UpdatePickOrderIntoNavAsync(pickOrder.PrimeCargoData);
 
+                var timeLines = (result.Entity as List<TimeLineDTO>) ?? new List<TimeLineDTO>();
+
                 if (!result.Succeeded)
                 {
                     log.LogError(result.Error);
-                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorClosingPickOrder + result.Error, TimeLineStatus.Error);
+                    timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Error, Description = TimeLineDescription.ErrorClosingPickOrder + result.Error, DateTime = DateTime.UtcNow });
+
+                    await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
                     return;
                 }
 
-                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.SuccessfullyClosedPickOrder, TimeLineStatus.Successfully);
+                timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Successfully, Description = TimeLineDescription.SuccessfullyClosedPickOrder, DateTime = DateTime.UtcNow });
+
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
 
                 // Set the pick order closed in Cosmos DB
                 bool isSucceeded = await pickOrderService.SetPickOrderClosedAsync(pickOrder);

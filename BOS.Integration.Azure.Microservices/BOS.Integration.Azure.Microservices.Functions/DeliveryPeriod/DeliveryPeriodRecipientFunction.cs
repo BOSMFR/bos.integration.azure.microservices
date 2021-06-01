@@ -47,7 +47,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.DeliveryPeriod
                 var erpMessages = new List<string>();
 
                 // Read file from blob storage
-                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+                string fileContent = await this.blobService.DownloadFileContentByFileNameAsync(mySbMsg);
 
                 // Get delivery period object from the topic message and create or update it in the storage
                 var deliveryPeriodDTO = JsonConvert.DeserializeObject<DeliveryPeriodDTO>(fileContent);

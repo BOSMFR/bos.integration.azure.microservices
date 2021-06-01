@@ -17,5 +17,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities
         public string Description { get; set; }
 
         public string Status { get; set; }
+
+        public string InfoFileName { get; set; }
     }
 }

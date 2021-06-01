@@ -34,6 +34,10 @@
         public const string PrimeCargoSuccessfullyReceived = " is successfully received from Prime Cargo";
         public const string PrimeCargoErrorGetting = "Error getting a {0} from Prime Cargo - ";
 
+        // Nav
+        public const string NavRequest = "Request message sent to Nav - ";
+        public const string NavResponse = "Response message received from Nav - ";
+
         // Sku
         public const string PreparingMessageCanceled = "Preparing message canceled - startDatePrimeCargoExport set to ";
 

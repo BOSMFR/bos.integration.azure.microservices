@@ -53,7 +53,7 @@ namespace BOS.Integration.Azure.Microservices.Functions
                 var timeLines = new List<TimeLineDTO>();
 
                 // Read file from blob storage
-                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+                string fileContent = await this.blobService.DownloadFileContentByFileNameAsync(mySbMsg);
 
                 // Get product object from the topic message and create or update it in the storage
                 var productDTO = JsonConvert.DeserializeObject<ProductDTO>(fileContent);

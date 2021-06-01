@@ -1,11 +1,14 @@
 ﻿using BOS.Integration.Azure.Microservices.Domain;
 using BOS.Integration.Azure.Microservices.Domain.Constants;
+using BOS.Integration.Azure.Microservices.Domain.DTOs;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.GoodsReceival;
 using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 using BOS.Integration.Azure.Microservices.Infrastructure.Configuration;
 using BOS.Integration.Azure.Microservices.Services.Abstraction;
 using BOS.Integration.Azure.Microservices.Services.Helpers;
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -13,15 +16,22 @@ namespace BOS.Integration.Azure.Microservices.Services
 {
     public class NavService : INavService
     {
+        private readonly string NavXmlFileDateFormat;
+
         private readonly IConfigurationManager configuration;
+        private readonly IBlobService blobService;
         private readonly IHttpService httpService;
 
         public NavService(
             IConfigurationManager configuration,
+            IBlobService blobService,
             IHttpService httpService)
         {
             this.configuration = configuration;
+            this.blobService = blobService;
             this.httpService = httpService;
+
+            this.NavXmlFileDateFormat = "ddMMyyyhhmmss";
         }
 
         public async Task<ActionExecutionResult> UpdateSkuIntoNavAsync(string eanNo, string productId)
@@ -67,8 +77,13 @@ namespace BOS.Integration.Azure.Microservices.Services
                     return actionResult;
                 }
 
+                var requestSentTime = DateTime.UtcNow;
+
                 var updateSkuResult = await this.httpService.PostSoapAsync(configuration.NavSettings.Sku.Url, updateSkuBody, configuration.NavSettings.Sku.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
+
+                // Save XML request and response bodies to Blob and create time lines
+                actionResult.Entity = await SaveXmlRequestAndResponseToBlobAsync(NavObject.Product, eanNo, updateSkuBody, requestSentTime, updateSkuResult.Content, DateTime.UtcNow);
 
                 if (!updateSkuResult.Succeeded)
                 {
@@ -92,19 +107,26 @@ namespace BOS.Integration.Azure.Microservices.Services
             var actionResult = new ActionExecutionResult();
 
             try
-            { 
-                string updateGoodsReceivalBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdateGoodsReceivalBody);
+            {
+                // Generate XML request body 
+                string updateBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdateGoodsReceivalBody);
 
-                if (string.IsNullOrEmpty(updateGoodsReceivalBody))
+                if (string.IsNullOrEmpty(updateBody))
                 {
                     actionResult.Error = "Could not generate an xml template";
                     return actionResult;
                 }
 
-                var updateGoodsReceivalResult = await this.httpService.PostSoapAsync(configuration.NavSettings.GoodsReceival.Url, updateGoodsReceivalBody, configuration.NavSettings.GoodsReceival.SoapAction,
+                var requestSentTime = DateTime.UtcNow;
+
+                // Update Goods Receival in Nav
+                var updateResult = await this.httpService.PostSoapAsync(configuration.NavSettings.GoodsReceival.Url, updateBody, configuration.NavSettings.GoodsReceival.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
-                if (!updateGoodsReceivalResult.Succeeded)
+                // Save XML request and response bodies to Blob and create time lines
+                actionResult.Entity = await SaveXmlRequestAndResponseToBlobAsync(NavObject.GoodsReceival, primeCargoResponse.GoodsReceivalId?.ToString(), updateBody, requestSentTime, updateResult.Content, DateTime.UtcNow);
+
+                if (!updateResult.Succeeded)
                 {
                     actionResult.Error = $"Could not update a GoodsReceival with id {primeCargoResponse.GoodsReceivalId}";
                     return actionResult;
@@ -127,18 +149,25 @@ namespace BOS.Integration.Azure.Microservices.Services
 
             try
             {
-                string updatePickOrderBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdatePickOrderBody);
+                // Generate XML request body 
+                string updateBody = GetXmlBody(primeCargoResponse, XmlTemplate.UpdatePickOrderBody);
 
-                if (string.IsNullOrEmpty(updatePickOrderBody))
+                if (string.IsNullOrEmpty(updateBody))
                 {
                     actionResult.Error = "Could not generate an xml template";
                     return actionResult;
                 }
 
-                var updatePickOrderResult = await this.httpService.PostSoapAsync(configuration.NavSettings.PickOrder.Url, updatePickOrderBody, configuration.NavSettings.PickOrder.SoapAction,
+                var requestSentTime = DateTime.UtcNow;
+
+                // Update Pick Order in Nav
+                var updateResult = await this.httpService.PostSoapAsync(configuration.NavSettings.PickOrder.Url, updateBody, configuration.NavSettings.PickOrder.SoapAction,
                                                                             configuration.NavSettings.UserName, configuration.NavSettings.Password);
 
-                if (!updatePickOrderResult.Succeeded)
+                // Save XML request and response bodies to Blob and create time lines
+                actionResult.Entity = await SaveXmlRequestAndResponseToBlobAsync(NavObject.PickOrder, primeCargoResponse.OrderNumber, updateBody, requestSentTime, updateResult.Content, DateTime.UtcNow);
+
+                if (!updateResult.Succeeded)
                 {
                     actionResult.Error = $"Could not update a PickOrder with id {primeCargoResponse.OrderNumber}";
                     return actionResult;
@@ -155,6 +184,28 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
+        private async Task<List<TimeLineDTO>> SaveXmlRequestAndResponseToBlobAsync(string entityName, string id, string requestXmlBody, DateTime requestSentTime, string responseXmlBody, DateTime responseReceivedTime)
+        {
+            var timeLines = new List<TimeLineDTO>();
+
+            string requestFileName = $"{entityName}_{id}_Nav_Request_{requestSentTime.ToString(NavXmlFileDateFormat)}.xml";
+            string responseFileName = $"{entityName}_{id}_Nav_Response_{responseReceivedTime.ToString(NavXmlFileDateFormat)}.xml";
+
+            await SaveXmlBodyToBlobAsync(requestFileName, requestXmlBody);
+            await SaveXmlBodyToBlobAsync(responseFileName, responseXmlBody);
+
+            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.NavRequest + requestFileName, Status = TimeLineStatus.Information, DateTime = requestSentTime, InfoFileName = requestFileName });
+            timeLines.Add(new TimeLineDTO { Description = TimeLineDescription.NavResponse + responseFileName, Status = TimeLineStatus.Information, DateTime = responseReceivedTime, InfoFileName = responseFileName });
+
+            return timeLines;
+        }
+
+        private async Task SaveXmlBodyToBlobAsync(string fileName, string xmlBody)
+        {
+            string base64File = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlBody));
+
+            await this.blobService.UploadFileToBlobContainer(fileName, base64File);
+        }
 
         private string GetKeyFromXml(string xmlResponse)
         {

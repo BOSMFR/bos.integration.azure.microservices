@@ -54,7 +54,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.PickOrder
                 var timeLines = new List<TimeLineDTO>();
 
                 // Read file from blob storage
-                string fileContent = await this.blobService.DownloadFileByFileNameAsync(mySbMsg);
+                string fileContent = await this.blobService.DownloadFileContentByFileNameAsync(mySbMsg);
 
                 // Get pick order object from the topic message and create it in the storage
                 var pickOrderDTO = JsonConvert.DeserializeObject<PickOrderDTO>(fileContent);

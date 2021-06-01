@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
@@ -30,6 +31,8 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
             {
                 log.LogInformation("UpdateGoodsReceivalNav function recieved the message from the topic");
 
+                List<TimeLineDTO> timeLines = new List<TimeLineDTO>();
+
                 var messageObject = JsonConvert.DeserializeObject<ResponseMessage<PrimeCargoGoodsReceivalResponseDTO>>(mySbMsg);
 
                 ActionExecutionResult result = null;
@@ -37,17 +40,22 @@ namespace BOS.Integration.Azure.Microservices.Functions.GoodsReceival
                 if (messageObject?.ResponseObject != null)
                 {
                     result = await this.navService.UpdateGoodsReceivalIntoNavAsync(messageObject.ResponseObject);
+
+                    timeLines = result.Entity as List<TimeLineDTO>;
                 }
 
                 if (result == null || !result.Succeeded)
                 {
                     string errorMessage = string.IsNullOrEmpty(result?.Error) ? "Could not update the GoodsReceival into Nav" : result.Error;
 
-                    await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.ErrorUpdatingGoodsReceival + errorMessage, TimeLineStatus.Error);
+                    timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Error, Description = TimeLineDescription.ErrorUpdatingGoodsReceival + errorMessage, DateTime = DateTime.UtcNow });
+
+                    await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
                     throw new Exception(errorMessage);
                 }
 
-                await this.logService.AddTimeLineAsync(messageObject.ErpInfo, TimeLineDescription.SuccessfullyUpdatedGoodsReceival, TimeLineStatus.Successfully);
+                timeLines.Add(new TimeLineDTO { Status = TimeLineStatus.Successfully, Description = TimeLineDescription.SuccessfullyUpdatedGoodsReceival, DateTime = DateTime.UtcNow });
+                await this.logService.AddTimeLinesAsync(messageObject.ErpInfo, timeLines);
             }
             catch (Exception ex)
             {
