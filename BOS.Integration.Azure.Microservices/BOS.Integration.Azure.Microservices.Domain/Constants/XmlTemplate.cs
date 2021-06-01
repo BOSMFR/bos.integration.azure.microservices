@@ -46,7 +46,7 @@
                                                                  <apig:xMLFile>
                                                         			{0}
                                                         		</apig:xMLFile>
-                                                              <apig:ImportPickingListXMLFile>
+                                                              </apig:ImportPickingListXMLFile>
                                                            </soapenv:Body>
                                                         </soapenv:Envelope>";
     }
