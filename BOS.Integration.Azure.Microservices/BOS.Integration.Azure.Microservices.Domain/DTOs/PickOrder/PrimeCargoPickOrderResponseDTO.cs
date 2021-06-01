@@ -132,7 +132,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
         [XmlElement("usStateId")]
         public int? UsStateId { get; set; }
 
-        [XmlElement("sustomsStatus")]
+        [XmlElement("customsStatus")]
         public int CustomsStatus { get; set; }
 
         [XmlElement("ssccLabel")]
