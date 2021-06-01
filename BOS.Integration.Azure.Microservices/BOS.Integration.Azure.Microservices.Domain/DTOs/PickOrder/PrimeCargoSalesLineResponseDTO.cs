@@ -31,10 +31,10 @@ namespace BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder
         [XmlElement("customsReference")]
         public string CustomsReference { get; set; }
 
-        [XmlElement("customerId1")]
+        [XmlElement("lineCustomerId1")]
         public string CustomerId1 { get; set; }
 
-        [XmlElement("customerId2")]
+        [XmlElement("lineCustomerId2")]
         public string CustomerId2 { get; set; }
 
         [XmlElement("lineCreatedTime")]
