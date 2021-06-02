@@ -12,7 +12,11 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
 
         Task<ActionExecutionResult> CreatePickOrderFromPrimeCargoInfoAsync(PrimeCargoPickOrderResponseDTO primeCargoResponseObject);
 
-        Task<bool> UpdatePickOrderFromPrimeCargoInfoAsync(PrimeCargoPickOrderResponseDTO primeCargoResponseObject, PickOrder pickOrder = null);
+        Task<bool> UpdatePickOrderFromPrimeCargoInfoAsync(
+            PrimeCargoPickOrderResponseDTO primeCargoResponseObject, 
+            PickOrder pickOrder = null, 
+            List<PrimeCargoPickOrderCartonDTO> primeCargoPickOrderCartons = null
+            );
 
         Task<List<PickOrder>> GetPickOrdersByFilterAsync(PickOrderFilterDTO pickOrderFilter);
 

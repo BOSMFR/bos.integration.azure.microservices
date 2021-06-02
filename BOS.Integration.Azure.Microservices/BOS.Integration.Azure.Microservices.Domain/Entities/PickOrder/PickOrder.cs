@@ -102,5 +102,7 @@ namespace BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder
         public List<SalesLine> SalesLines { get; set; }
 
         public PrimeCargoPickOrderResponseDTO PrimeCargoData { get; set; }
+
+        public List<PrimeCargoPickOrderCartonDTO> PrimeCargoPickOrderCartons { get; set; }
     }
 }
