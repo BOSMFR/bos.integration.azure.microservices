@@ -85,7 +85,11 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
         }
 
-        public async Task<bool> UpdatePickOrderFromPrimeCargoInfoAsync(PrimeCargoPickOrderResponseDTO primeCargoResponseObject, PickOrder pickOrder = null)
+        public async Task<bool> UpdatePickOrderFromPrimeCargoInfoAsync(
+            PrimeCargoPickOrderResponseDTO primeCargoResponseObject, 
+            PickOrder pickOrder = null, 
+            List<PrimeCargoPickOrderCartonDTO> primeCargoPickOrderCartons = null
+            )
         {
             pickOrder ??= await repository.GetByIdAsync(primeCargoResponseObject.OrderNumber, NavObjectCategory.PickOrder);
 
@@ -95,6 +99,7 @@ namespace BOS.Integration.Azure.Microservices.Services
             }
 
             pickOrder.PrimeCargoData = primeCargoResponseObject;
+            pickOrder.PrimeCargoPickOrderCartons = primeCargoPickOrderCartons;
 
             await repository.UpdateAsync(pickOrder, pickOrder.Category);
 

@@ -15,5 +15,7 @@ namespace BOS.Integration.Azure.Microservices.Services.Abstraction
         Task<T> GetPrimeCargoObjectAsync<T>(string url, LogInfo erpInfo, ILogger log, string entityName);
 
         Task<ActionExecutionResult> GetGoodsReceivalsByLastUpdateAsync(DateTime lastUpdate);
+
+        Task<ActionExecutionResult> GetPickOrderCartonsAsync(int pickOrderHeaderId);
     }
 }

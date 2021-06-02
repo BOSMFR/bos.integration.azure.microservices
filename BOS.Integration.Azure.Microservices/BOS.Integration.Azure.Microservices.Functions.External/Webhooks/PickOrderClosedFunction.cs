@@ -12,9 +12,10 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PrimeCargo;
 using PickOrderEntity = BOS.Integration.Azure.Microservices.Domain.Entities.PickOrder.PickOrder;
 
 namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
@@ -70,7 +71,7 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
                     log.LogError(createWebhookResult.Error);
                     throw new Exception(createWebhookResult.Error);
                 }
-
+                
                 // Deserialize and validate request message
                 var pickOrderClosedDTO = JsonConvert.DeserializeObject<PickOrderClosedDTO>(requestBody);
 
@@ -79,9 +80,9 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
                     log.LogError("OrderNumber and PickOrderHeaderId properties must have value");
                     return null;
                 }
-
+                
                 LogInfo erpInfo;
-
+                
                 // Get pick order from Cosmos DB
                 var pickOrder = await pickOrderService.GetPickOrderByIdAsync(pickOrderClosedDTO.OrderNumber);
 
@@ -122,11 +123,24 @@ namespace BOS.Integration.Azure.Microservices.Functions.External.Webhooks
 
                 // Get pick order from Prime Cargo
                 string url = configuration.PrimeCargoSettings.Url + "PickOrder/GetPickOrder?pickOrderHeaderId=" + pickOrderClosedDTO.PickOrderHeaderId.ToString();
-
+                
                 var primeCargoPickOrder = await primeCargoService.GetPrimeCargoObjectAsync<PrimeCargoPickOrderResponseDTO>(url, erpInfo, log, NavObject.PickOrder);
 
+                // Get pick order cartons from Prime Cargo
+                var result = await primeCargoService.GetPickOrderCartonsAsync(primeCargoPickOrder.PickOrderHeaderId.Value);
+
+                var pickOrderCartons = result.Entity as PrimeCargoResponseContent<List<PrimeCargoPickOrderCartonDTO>>;
+
+                if (!result.Succeeded || pickOrderCartons == null)
+                {
+                    string error = result.Error ?? "Could not get PickOrderCartons from PrimeCargo";
+
+                    log.LogError(error);
+                    throw new Exception(error);
+                }
+
                 // Update pick order in Cosmos DB            
-                await pickOrderService.UpdatePickOrderFromPrimeCargoInfoAsync(primeCargoPickOrder, pickOrder);
+                await pickOrderService.UpdatePickOrderFromPrimeCargoInfoAsync(primeCargoPickOrder, pickOrder, pickOrderCartons.Data);
 
                 log.LogInformation("PickOrder is successfully updated in Cosmos DB");
 

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using BOS.Integration.Azure.Microservices.Domain.DTOs.PickOrder;
 
 namespace BOS.Integration.Azure.Microservices.Services
 {
@@ -120,6 +121,13 @@ namespace BOS.Integration.Azure.Microservices.Services
             string url = configuration.PrimeCargoSettings.Url + "GoodsReceival/GetGoodsReceivalsByReceivalLineUpdate?Lastupdate=" + lastUpdate.ToString(DateTimeHelper.PrimeCargoDateFormat);
 
             return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoGoodsReceivalResponseDTO>>(url);
+        }
+
+        public async Task<ActionExecutionResult> GetPickOrderCartonsAsync(int pickOrderHeaderId)
+        {
+            string url = configuration.PrimeCargoSettings.Url + "PickOrder/GetCartons?pickOrderHeaderId=" + pickOrderHeaderId;
+
+            return await this.CallPrimeCargoGetEndpointAsync<List<PrimeCargoPickOrderCartonDTO>>(url);
         }
 
         private async Task<ActionExecutionResult> CallPrimeCargoPostEndpointAsync<T, V>(string url, T primeCargoRequestObject)
